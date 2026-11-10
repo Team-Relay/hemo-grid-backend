@@ -173,9 +173,9 @@ The **Hospital Clinical Officer**. The algorithm proposes ranked recommendations
 ## Team
 | Name | Role | Country | Presenting Friday |
 | :--- | :--- | :--- | :--- |
-| **Dennis Ikechukwu** | Full-Stack & Systems Engineer | Nigeria | Online |
-| **Relay Team Member 2** | Product & Frontend | Kenya / Online | In-Person / Online |
-| **Relay Team Member 3** | Data & Clinical Modeling | Kenya / Online | In-Person / Online |
+| **Dennis Ikechukwu** | Full-Stack & Systems Engineer (Team Lead) | Nigeria | Online |
+| **Mubarak Zubair** | Product Manager & Clinical Data Analyst | Nigeria | Online |
+| **Grold Otieno Mboya** | ML & AI Researcher | Kenya | In Person (Nairobi) |
 
 ---
 
