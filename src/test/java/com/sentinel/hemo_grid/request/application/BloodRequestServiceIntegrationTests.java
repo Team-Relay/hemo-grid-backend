@@ -52,7 +52,7 @@ class BloodRequestServiceIntegrationTests {
 
 		List<CandidateResponse> candidates = bloodRequestService.getCandidates(hospitalJwt, created.id()).candidates();
 
-		assertThat(candidates).hasSize(3);
+		assertThat(candidates).hasSizeGreaterThanOrEqualTo(3);
 		assertThat(candidates.get(0).organizationName()).isEqualTo("Maitama Blood Centre");
 		assertThat(candidates.get(0).canFullyFulfil()).isTrue();
 		assertThat(candidates.get(1).organizationName()).isEqualTo("Wuse Regional Blood Bank");

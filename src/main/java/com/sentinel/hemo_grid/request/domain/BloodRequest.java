@@ -44,6 +44,10 @@ public class BloodRequest {
 	private BloodGroup bloodGroup;
 
 	@Enumerated(EnumType.STRING)
+	@Column(name = "allocated_blood_group")
+	private BloodGroup allocatedBloodGroup;
+
+	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private BloodComponent component;
 
@@ -57,6 +61,19 @@ public class BloodRequest {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private RequestStatus status;
+
+	@Column(name = "unknown_patient_blood_group", nullable = false)
+	private boolean unknownPatientBloodGroup = false;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "match_type", nullable = false)
+	private MatchCompatibilityType matchType = MatchCompatibilityType.EXACT;
+
+	@Column(name = "estimated_transit_hours")
+	private Double estimatedTransitHours;
+
+	@Column(name = "cold_chain_verified", nullable = false)
+	private boolean coldChainVerified = true;
 
 	@Column(name = "clinical_reference")
 	private String clinicalReference;
@@ -97,15 +114,18 @@ public class BloodRequest {
 			BloodComponent component,
 			int unitsRequired,
 			RequestUrgency urgency,
+			boolean unknownPatientBloodGroup,
 			String clinicalReference,
 			String notes,
 			AppUser createdByUser
 	) {
 		this.requesterOrganization = requesterOrganization;
 		this.bloodGroup = bloodGroup;
+		this.allocatedBloodGroup = bloodGroup;
 		this.component = component;
 		this.unitsRequired = unitsRequired;
 		this.urgency = urgency;
+		this.unknownPatientBloodGroup = unknownPatientBloodGroup;
 		this.status = RequestStatus.REQUESTED;
 		this.clinicalReference = clinicalReference;
 		this.notes = notes;
@@ -118,19 +138,36 @@ public class BloodRequest {
 			BloodComponent component,
 			int unitsRequired,
 			RequestUrgency urgency,
+			boolean unknownPatientBloodGroup,
 			String clinicalReference,
 			String notes
 	) {
+		boolean isUnknown = unknownPatientBloodGroup
+				|| (notes != null && notes.contains("[EMERGENCY UNKNOWN BLOOD GROUP"));
+		BloodGroup actualGroup = bloodGroup != null ? bloodGroup : BloodGroup.O_NEGATIVE;
 		return new BloodRequest(
 				createdByUser.getOrganization(),
-				bloodGroup,
+				actualGroup,
 				component,
 				unitsRequired,
 				urgency,
+				isUnknown,
 				clinicalReference,
 				notes,
 				createdByUser
 		);
+	}
+
+	public static BloodRequest create(
+			AppUser createdByUser,
+			BloodGroup bloodGroup,
+			BloodComponent component,
+			int unitsRequired,
+			RequestUrgency urgency,
+			String clinicalReference,
+			String notes
+	) {
+		return create(createdByUser, bloodGroup, component, unitsRequired, urgency, false, clinicalReference, notes);
 	}
 
 	@PrePersist
@@ -138,6 +175,9 @@ public class BloodRequest {
 		Instant now = Instant.now();
 		if (requestedAt == null) {
 			requestedAt = now;
+		}
+		if (allocatedBloodGroup == null) {
+			allocatedBloodGroup = bloodGroup;
 		}
 		updatedAt = now;
 	}
@@ -163,6 +203,10 @@ public class BloodRequest {
 		return bloodGroup;
 	}
 
+	public BloodGroup getAllocatedBloodGroup() {
+		return allocatedBloodGroup != null ? allocatedBloodGroup : bloodGroup;
+	}
+
 	public BloodComponent getComponent() {
 		return component;
 	}
@@ -177,6 +221,22 @@ public class BloodRequest {
 
 	public RequestStatus getStatus() {
 		return status;
+	}
+
+	public boolean isUnknownPatientBloodGroup() {
+		return unknownPatientBloodGroup;
+	}
+
+	public MatchCompatibilityType getMatchType() {
+		return matchType;
+	}
+
+	public Double getEstimatedTransitHours() {
+		return estimatedTransitHours;
+	}
+
+	public boolean isColdChainVerified() {
+		return coldChainVerified;
 	}
 
 	public String getClinicalReference() {
@@ -219,11 +279,25 @@ public class BloodRequest {
 		return updatedAt;
 	}
 
-	public void selectProvider(Organization providerOrganization) {
+	public void selectProvider(
+			Organization providerOrganization,
+			BloodGroup offeredGroup,
+			MatchCompatibilityType matchType,
+			Double estimatedTransitHours,
+			boolean coldChainVerified
+	) {
 		if (status != RequestStatus.REQUESTED) {
 			throw new IllegalStateException("Provider can only be selected while request is REQUESTED.");
 		}
 		this.providerOrganization = providerOrganization;
+		this.allocatedBloodGroup = offeredGroup != null ? offeredGroup : this.bloodGroup;
+		this.matchType = matchType != null ? matchType : MatchCompatibilityType.EXACT;
+		this.estimatedTransitHours = estimatedTransitHours;
+		this.coldChainVerified = coldChainVerified;
+	}
+
+	public void selectProvider(Organization providerOrganization) {
+		selectProvider(providerOrganization, this.bloodGroup, MatchCompatibilityType.EXACT, null, true);
 	}
 
 	public void accept() {

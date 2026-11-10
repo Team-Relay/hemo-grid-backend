@@ -143,7 +143,7 @@ public class ProviderRequestService {
 	private BloodInventory lockMatchingInventory(BloodRequest request) {
 		return inventoryRepository.lockByOrganizationIdAndBloodGroupAndComponent(
 						request.getProviderOrganization().getId(),
-						request.getBloodGroup(),
+						request.getAllocatedBloodGroup(),
 						request.getComponent()
 				)
 				.orElseThrow(() -> new BusinessException(HttpStatus.CONFLICT, ErrorCode.INSUFFICIENT_INVENTORY, "Matching inventory row not found."));

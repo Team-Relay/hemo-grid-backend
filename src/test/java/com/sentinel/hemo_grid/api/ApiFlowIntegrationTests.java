@@ -86,7 +86,7 @@ class ApiFlowIntegrationTests {
 						.header(HttpHeaders.AUTHORIZATION, bearer(hospitalToken)))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.requestId").value(requestId))
-				.andExpect(jsonPath("$.candidates", hasSize(3)))
+				.andExpect(jsonPath("$.candidates", hasSize(4)))
 				.andExpect(jsonPath("$.candidates[0].organizationName").value("Maitama Blood Centre"))
 				.andExpect(jsonPath("$.candidates[0].canFullyFulfil").value(true));
 

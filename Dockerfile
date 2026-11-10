@@ -17,4 +17,4 @@ RUN useradd --system --uid 10001 --create-home hemogrid
 COPY --from=build --chown=hemogrid:hemogrid /workspace/target/hemo-grid-*.jar app.jar
 USER hemogrid
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-XX:+UseSerialGC", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]

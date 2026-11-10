@@ -9,6 +9,7 @@ import com.sentinel.hemo_grid.auth.application.AuthService;
 import com.sentinel.hemo_grid.auth.domain.AppUser;
 import com.sentinel.hemo_grid.common.exception.BusinessException;
 import com.sentinel.hemo_grid.common.exception.ErrorCode;
+import com.sentinel.hemo_grid.inventory.domain.BloodGroup;
 import com.sentinel.hemo_grid.inventory.persistence.BloodInventoryRepository;
 import com.sentinel.hemo_grid.matching.application.MatchingService;
 import com.sentinel.hemo_grid.organization.domain.Organization;
@@ -64,6 +65,7 @@ public class BloodRequestService {
 				request.component(),
 				request.unitsRequired(),
 				request.urgency(),
+				Boolean.TRUE.equals(request.unknownPatientBloodGroup()),
 				blankToNull(request.clinicalReference()),
 				blankToNull(request.notes())
 		);
@@ -113,24 +115,25 @@ public class BloodRequestService {
 				.filter(organization -> organization.getOrganizationType() == OrganizationType.BLOOD_BANK)
 				.orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND, "Provider organization not found."));
 
-		boolean candidateExists = candidateRepository.existsByBloodRequestIdAndProviderOrganizationId(
+		RequestCandidate candidate = candidateRepository.findByBloodRequestIdAndProviderOrganizationId(
 				bloodRequest.getId(),
 				provider.getId()
-		);
-		if (!candidateExists) {
-			throw new BusinessException(
-					HttpStatus.CONFLICT,
-					ErrorCode.RESOURCE_NOT_FOUND,
-					"The selected provider is not a candidate for this request."
-			);
-		}
+		).orElseThrow(() -> new BusinessException(
+				HttpStatus.CONFLICT,
+				ErrorCode.RESOURCE_NOT_FOUND,
+				"The selected provider is not a candidate for this request."
+		));
+
+		BloodGroup groupToCheck = candidate.getOfferedBloodGroup() != null
+				? candidate.getOfferedBloodGroup()
+				: bloodRequest.getBloodGroup();
 
 		boolean canStillFullyFulfil = inventoryRepository.findByOrganizationIdAndBloodGroupAndComponent(
 						provider.getId(),
-						bloodRequest.getBloodGroup(),
+						groupToCheck,
 						bloodRequest.getComponent()
 				)
-				.map(inventory -> inventory.unitsFree() >= bloodRequest.getUnitsRequired())
+				.map(inventory -> inventory.dispatchableUnitsFree() >= bloodRequest.getUnitsRequired())
 				.orElse(false);
 		if (!canStillFullyFulfil) {
 			throw new BusinessException(
@@ -140,7 +143,13 @@ public class BloodRequestService {
 			);
 		}
 
-		bloodRequest.selectProvider(provider);
+		bloodRequest.selectProvider(
+				provider,
+				candidate.getOfferedBloodGroup(),
+				candidate.getMatchType(),
+				candidate.getEstimatedTransitHours(),
+				candidate.isColdChainVerified()
+		);
 		return BloodRequestResponse.from(bloodRequest);
 	}
 
@@ -159,7 +168,7 @@ public class BloodRequestService {
 		if (bloodRequest.getStatus() == RequestStatus.ACCEPTED || bloodRequest.getStatus() == RequestStatus.PREPARING) {
 			inventoryRepository.lockByOrganizationIdAndBloodGroupAndComponent(
 							bloodRequest.getProviderOrganization().getId(),
-							bloodRequest.getBloodGroup(),
+							bloodRequest.getAllocatedBloodGroup(),
 							bloodRequest.getComponent()
 					)
 					.orElseThrow(() -> new BusinessException(

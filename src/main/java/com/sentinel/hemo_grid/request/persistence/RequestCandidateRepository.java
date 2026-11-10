@@ -3,6 +3,7 @@
 package com.sentinel.hemo_grid.request.persistence;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.sentinel.hemo_grid.request.domain.RequestCandidate;
@@ -20,4 +21,6 @@ public interface RequestCandidateRepository extends JpaRepository<RequestCandida
 	List<RequestCandidate> findByBloodRequestIdOrderByRankPositionAsc(UUID requestId);
 
 	boolean existsByBloodRequestIdAndProviderOrganizationId(UUID bloodRequestId, UUID providerOrganizationId);
+
+	Optional<RequestCandidate> findByBloodRequestIdAndProviderOrganizationId(UUID bloodRequestId, UUID providerOrganizationId);
 }

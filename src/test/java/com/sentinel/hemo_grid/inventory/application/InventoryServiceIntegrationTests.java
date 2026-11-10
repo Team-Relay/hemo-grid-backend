@@ -43,7 +43,7 @@ class InventoryServiceIntegrationTests {
 
 		List<InventoryResponse> inventory = inventoryService.listInventory(bankJwt);
 
-		assertThat(inventory).hasSize(8);
+		assertThat(inventory).hasSize(16);
 		assertThat(inventory)
 				.anySatisfy(row -> {
 					assertThat(row.bloodGroup()).isEqualTo(BloodGroup.O_NEGATIVE);

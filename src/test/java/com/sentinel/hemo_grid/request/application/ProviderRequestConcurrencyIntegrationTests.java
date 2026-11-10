@@ -111,6 +111,68 @@ class ProviderRequestConcurrencyIntegrationTests {
 		assertThat(inventory.unitsFree()).isEqualTo(2);
 	}
 
+	@Test
+	void competingRequestsCannotExceedTotalInventoryCapacity() throws Exception {
+		Jwt hospitalJwt = login("hospital.demo@hemogrid.local", "HospitalDemo123!");
+		Jwt bankJwt = login("bank.demo@hemogrid.local", "BankDemo123!");
+
+		// Total free units for Maitama O- is 5.
+		// Two separate requests for 3 units each compete (3 + 3 = 6 > 5).
+		BloodRequestResponse req1 = bloodRequestService.createRequest(
+				hospitalJwt,
+				new CreateBloodRequestRequest(BloodGroup.O_NEGATIVE, BloodComponent.RED_CELLS, 3, RequestUrgency.CRITICAL, "COMPETE-1", null)
+		);
+		BloodRequestResponse req2 = bloodRequestService.createRequest(
+				hospitalJwt,
+				new CreateBloodRequestRequest(BloodGroup.O_NEGATIVE, BloodComponent.RED_CELLS, 3, RequestUrgency.CRITICAL, "COMPETE-2", null)
+		);
+
+		bloodRequestService.selectProvider(hospitalJwt, req1.id(), new SelectProviderRequest(MAITAMA_BANK_ID));
+		bloodRequestService.selectProvider(hospitalJwt, req2.id(), new SelectProviderRequest(MAITAMA_BANK_ID));
+
+		CountDownLatch ready = new CountDownLatch(2);
+		CountDownLatch start = new CountDownLatch(1);
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		int successCount = 0;
+		int conflictCount = 0;
+
+		try {
+			Future<BloodRequestResponse> f1 = executor.submit(() -> acceptTogether(bankJwt, req1.id(), ready, start));
+			Future<BloodRequestResponse> f2 = executor.submit(() -> acceptTogether(bankJwt, req2.id(), ready, start));
+
+			assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
+			start.countDown();
+
+			try {
+				f1.get(10, TimeUnit.SECONDS);
+				successCount++;
+			} catch (Exception e) {
+				conflictCount++;
+			}
+
+			try {
+				f2.get(10, TimeUnit.SECONDS);
+				successCount++;
+			} catch (Exception e) {
+				conflictCount++;
+			}
+		} finally {
+			executor.shutdownNow();
+		}
+
+		// Exactly one succeeded and one was rejected due to insufficient inventory
+		assertThat(successCount).isEqualTo(1);
+		assertThat(conflictCount).isEqualTo(1);
+
+		InventoryResponse inventory = inventoryService.listInventory(bankJwt)
+				.stream()
+				.filter(row -> row.id().equals(O_NEGATIVE_MAITAMA_INVENTORY_ID))
+				.findFirst()
+				.orElseThrow();
+		assertThat(inventory.unitsReserved()).isEqualTo(3);
+		assertThat(inventory.unitsFree()).isEqualTo(2);
+	}
+
 	private BloodRequestResponse acceptTogether(
 			Jwt jwt,
 			UUID requestId,

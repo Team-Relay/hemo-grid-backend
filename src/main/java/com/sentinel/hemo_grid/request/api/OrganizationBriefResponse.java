@@ -4,6 +4,7 @@ package com.sentinel.hemo_grid.request.api;
 
 import java.util.UUID;
 
+import com.sentinel.hemo_grid.organization.domain.FacilityTier;
 import com.sentinel.hemo_grid.organization.domain.Organization;
 import com.sentinel.hemo_grid.organization.domain.OrganizationType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,7 +17,13 @@ public record OrganizationBriefResponse(
 		String name,
 
 		@Schema(example = "BLOOD_BANK")
-		OrganizationType type
+		OrganizationType type,
+
+		@Schema(example = "RBTC-NBO")
+		String facilityCode,
+
+		@Schema(example = "RBTC")
+		FacilityTier facilityTier
 ) {
 
 	public static OrganizationBriefResponse from(Organization organization) {
@@ -26,7 +33,9 @@ public record OrganizationBriefResponse(
 		return new OrganizationBriefResponse(
 				organization.getId(),
 				organization.getName(),
-				organization.getOrganizationType()
+				organization.getOrganizationType(),
+				organization.getFacilityCode(),
+				organization.getFacilityTier()
 		);
 	}
 }

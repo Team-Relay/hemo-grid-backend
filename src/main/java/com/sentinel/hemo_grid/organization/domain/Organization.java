@@ -31,6 +31,13 @@ public class Organization {
 	@Column(name = "organization_type", nullable = false)
 	private OrganizationType organizationType;
 
+	@Column(name = "facility_code")
+	private String facilityCode;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "facility_tier")
+	private FacilityTier facilityTier = FacilityTier.HOSPITAL;
+
 	private String email;
 
 	private String phone;
@@ -42,9 +49,20 @@ public class Organization {
 
 	private String state;
 
+	private String county;
+
 	private Double latitude;
 
 	private Double longitude;
+
+	@Column(name = "assigned_supply_centre")
+	private String assignedSupplyCentre;
+
+	@Column(name = "recommended_supply_centre")
+	private String recommendedSupplyCentre;
+
+	@Column(name = "saved_transit_hours")
+	private Double savedTransitHours;
 
 	@Column(nullable = false)
 	private boolean active = true;
@@ -82,6 +100,14 @@ public class Organization {
 		return organizationType;
 	}
 
+	public String getFacilityCode() {
+		return facilityCode;
+	}
+
+	public FacilityTier getFacilityTier() {
+		return facilityTier;
+	}
+
 	public String getEmail() {
 		return email;
 	}
@@ -102,12 +128,28 @@ public class Organization {
 		return state;
 	}
 
+	public String getCounty() {
+		return county;
+	}
+
 	public Double getLatitude() {
 		return latitude;
 	}
 
 	public Double getLongitude() {
 		return longitude;
+	}
+
+	public String getAssignedSupplyCentre() {
+		return assignedSupplyCentre;
+	}
+
+	public String getRecommendedSupplyCentre() {
+		return recommendedSupplyCentre;
+	}
+
+	public Double getSavedTransitHours() {
+		return savedTransitHours;
 	}
 
 	public boolean isActive() {

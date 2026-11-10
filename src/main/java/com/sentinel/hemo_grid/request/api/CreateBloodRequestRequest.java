@@ -12,7 +12,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record CreateBloodRequestRequest(
-		@NotNull
 		@Schema(example = "O_NEGATIVE")
 		BloodGroup bloodGroup,
 
@@ -29,6 +28,9 @@ public record CreateBloodRequestRequest(
 		@Schema(example = "CRITICAL")
 		RequestUrgency urgency,
 
+		@Schema(example = "false")
+		Boolean unknownPatientBloodGroup,
+
 		@Size(max = 120)
 		@Schema(example = "ER-2026-0820-001")
 		String clinicalReference,
@@ -37,4 +39,14 @@ public record CreateBloodRequestRequest(
 		@Schema(example = "Emergency request")
 		String notes
 ) {
+	public CreateBloodRequestRequest(
+			BloodGroup bloodGroup,
+			BloodComponent component,
+			int unitsRequired,
+			RequestUrgency urgency,
+			String clinicalReference,
+			String notes
+	) {
+		this(bloodGroup, component, unitsRequired, urgency, false, clinicalReference, notes);
+	}
 }

@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.sentinel.hemo_grid.inventory.domain.BloodComponent;
 import com.sentinel.hemo_grid.inventory.domain.BloodGroup;
 import com.sentinel.hemo_grid.request.domain.BloodRequest;
+import com.sentinel.hemo_grid.request.domain.MatchCompatibilityType;
 import com.sentinel.hemo_grid.request.domain.RequestStatus;
 import com.sentinel.hemo_grid.request.domain.RequestUrgency;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,6 +23,9 @@ public record BloodRequestResponse(
 		@Schema(example = "O_NEGATIVE")
 		BloodGroup bloodGroup,
 
+		@Schema(example = "O_NEGATIVE")
+		BloodGroup allocatedBloodGroup,
+
 		@Schema(example = "RED_CELLS")
 		BloodComponent component,
 
@@ -33,6 +37,18 @@ public record BloodRequestResponse(
 
 		@Schema(example = "REQUESTED")
 		RequestStatus status,
+
+		@Schema(example = "false")
+		boolean unknownPatientBloodGroup,
+
+		@Schema(example = "EXACT")
+		MatchCompatibilityType matchType,
+
+		@Schema(example = "0.15")
+		Double estimatedTransitHours,
+
+		@Schema(example = "true")
+		boolean coldChainVerified,
 
 		String clinicalReference,
 		String notes,
@@ -51,10 +67,15 @@ public record BloodRequestResponse(
 				OrganizationBriefResponse.from(request.getRequesterOrganization()),
 				OrganizationBriefResponse.from(request.getProviderOrganization()),
 				request.getBloodGroup(),
+				request.getAllocatedBloodGroup(),
 				request.getComponent(),
 				request.getUnitsRequired(),
 				request.getUrgency(),
 				request.getStatus(),
+				request.isUnknownPatientBloodGroup(),
+				request.getMatchType() != null ? request.getMatchType() : MatchCompatibilityType.EXACT,
+				roundValue(request.getEstimatedTransitHours()),
+				request.isColdChainVerified(),
 				request.getClinicalReference(),
 				request.getNotes(),
 				request.getRequestedAt(),
@@ -65,5 +86,12 @@ public record BloodRequestResponse(
 				request.getCancelledAt(),
 				request.getUpdatedAt()
 		);
+	}
+
+	private static Double roundValue(Double value) {
+		if (value == null) {
+			return null;
+		}
+		return Math.round(value * 100.0) / 100.0;
 	}
 }

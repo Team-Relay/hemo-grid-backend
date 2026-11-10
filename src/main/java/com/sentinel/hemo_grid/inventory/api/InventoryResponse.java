@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.sentinel.hemo_grid.inventory.domain.BloodComponent;
 import com.sentinel.hemo_grid.inventory.domain.BloodGroup;
 import com.sentinel.hemo_grid.inventory.domain.BloodInventory;
+import com.sentinel.hemo_grid.inventory.domain.ColdChainStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record InventoryResponse(
@@ -29,6 +30,24 @@ public record InventoryResponse(
 		@Schema(example = "5")
 		int unitsFree,
 
+		@Schema(example = "0")
+		int quarantinedTempExcursionUnits,
+
+		@Schema(example = "3.8")
+		double fridgeTempCelsius,
+
+		@Schema(example = "VERIFIED_2_6C")
+		ColdChainStatus coldChainStatus,
+
+		@Schema(example = "0")
+		int expiringWithin7DaysUnits,
+
+		@Schema(example = "5")
+		int dispatchableUnitsFree,
+
+		@Schema(example = "true")
+		boolean coldChainVerified,
+
 		@Schema(description = "Last persisted inventory change in UTC")
 		Instant updatedAt
 ) {
@@ -41,6 +60,12 @@ public record InventoryResponse(
 				inventory.getUnitsAvailable(),
 				inventory.getUnitsReserved(),
 				inventory.unitsFree(),
+				inventory.getQuarantinedTempExcursionUnits(),
+				inventory.getFridgeTempCelsius(),
+				inventory.getColdChainStatus(),
+				inventory.getExpiringWithin7DaysUnits(),
+				inventory.dispatchableUnitsFree(),
+				inventory.isColdChainVerified(),
 				inventory.getUpdatedAt()
 		);
 	}

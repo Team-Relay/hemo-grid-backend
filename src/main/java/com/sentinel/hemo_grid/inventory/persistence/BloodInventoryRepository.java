@@ -2,6 +2,7 @@
 
 package com.sentinel.hemo_grid.inventory.persistence;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,6 +47,20 @@ public interface BloodInventoryRepository extends JpaRepository<BloodInventory, 
 			""")
 	List<BloodInventory> findMatchingInventoryRows(
 			BloodGroup bloodGroup,
+			BloodComponent component,
+			OrganizationType organizationType
+	);
+
+	@Query("""
+			select inventory from BloodInventory inventory
+			join fetch inventory.organization organization
+			where inventory.bloodGroup in :bloodGroups
+			  and inventory.component = :component
+			  and organization.organizationType = :organizationType
+			  and organization.active = true
+			""")
+	List<BloodInventory> findMatchingInventoryRowsForGroups(
+			Collection<BloodGroup> bloodGroups,
 			BloodComponent component,
 			OrganizationType organizationType
 	);

@@ -47,6 +47,19 @@ public class BloodInventory {
 	@Column(name = "units_reserved", nullable = false)
 	private int unitsReserved;
 
+	@Column(name = "quarantined_temp_excursion_units", nullable = false)
+	private int quarantinedTempExcursionUnits = 0;
+
+	@Column(name = "fridge_temp_celsius", nullable = false)
+	private double fridgeTempCelsius = 3.8;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "cold_chain_status", nullable = false)
+	private ColdChainStatus coldChainStatus = ColdChainStatus.VERIFIED_2_6C;
+
+	@Column(name = "expiring_within_7_days_units", nullable = false)
+	private int expiringWithin7DaysUnits = 0;
+
 	@Version
 	@Column(nullable = false)
 	private long version;
@@ -96,6 +109,28 @@ public class BloodInventory {
 		return unitsReserved;
 	}
 
+	public int getQuarantinedTempExcursionUnits() {
+		return quarantinedTempExcursionUnits;
+	}
+
+	public double getFridgeTempCelsius() {
+		return fridgeTempCelsius;
+	}
+
+	public ColdChainStatus getColdChainStatus() {
+		return coldChainStatus;
+	}
+
+	public int getExpiringWithin7DaysUnits() {
+		return expiringWithin7DaysUnits;
+	}
+
+	public boolean isColdChainVerified() {
+		return coldChainStatus == ColdChainStatus.VERIFIED_2_6C
+				&& fridgeTempCelsius >= 2.0
+				&& fridgeTempCelsius <= 6.0;
+	}
+
 	public long getVersion() {
 		return version;
 	}
@@ -109,7 +144,17 @@ public class BloodInventory {
 	}
 
 	public int unitsFree() {
-		return unitsAvailable - unitsReserved;
+		return Math.max(0, unitsAvailable - unitsReserved);
+	}
+
+	/**
+	 * Units free and safe for dispatch (excluding any units quarantined due to temperature excursions).
+	 */
+	public int dispatchableUnitsFree() {
+		if (!isColdChainVerified()) {
+			return 0;
+		}
+		return Math.max(0, unitsAvailable - unitsReserved - quarantinedTempExcursionUnits);
 	}
 
 	public void updateUnitsAvailable(int unitsAvailable) {
@@ -117,6 +162,16 @@ public class BloodInventory {
 			throw new IllegalArgumentException("unitsAvailable cannot be less than unitsReserved.");
 		}
 		this.unitsAvailable = unitsAvailable;
+	}
+
+	public void updateColdChainTelemetry(double fridgeTempCelsius, int quarantinedUnits) {
+		this.fridgeTempCelsius = fridgeTempCelsius;
+		this.quarantinedTempExcursionUnits = Math.max(0, quarantinedUnits);
+		if (fridgeTempCelsius > 6.0 || quarantinedUnits > 0) {
+			this.coldChainStatus = ColdChainStatus.EXCURSION_QUARANTINED;
+		} else {
+			this.coldChainStatus = ColdChainStatus.VERIFIED_2_6C;
+		}
 	}
 
 	public void reserve(int units) {
