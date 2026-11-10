@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: hemogrid-postgres
+    environment:
+      POSTGRES_DB: hemogrid
+      POSTGRES_USER: hemogrid
+      POSTGRES_PASSWORD: hemogrid
+    ports:
+      - "5432:5432"
+    volumes:
+      - hemogrid_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hemogrid -d hemogrid"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  hemogrid_postgres_data:
