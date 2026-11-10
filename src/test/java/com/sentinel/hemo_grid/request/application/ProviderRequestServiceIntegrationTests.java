@@ -122,8 +122,9 @@ class ProviderRequestServiceIntegrationTests {
 	void acceptRejectsInsufficientInventory() {
 		Jwt hospitalJwt = login("hospital.demo@hemogrid.local", "HospitalDemo123!");
 		Jwt bankJwt = login("bank.demo@hemogrid.local", "BankDemo123!");
-		inventoryService.updateUnitsAvailable(bankJwt, O_NEGATIVE_MAITAMA_INVENTORY_ID, new UpdateInventoryRequest(2));
 		BloodRequestResponse selected = createAndSelect(hospitalJwt, MAITAMA_BANK_ID);
+		// Simulate stock changing after the hospital made a valid provider selection.
+		inventoryService.updateUnitsAvailable(bankJwt, O_NEGATIVE_MAITAMA_INVENTORY_ID, new UpdateInventoryRequest(2));
 
 		assertThatThrownBy(() -> providerRequestService.accept(bankJwt, selected.id()))
 				.isInstanceOf(BusinessException.class)

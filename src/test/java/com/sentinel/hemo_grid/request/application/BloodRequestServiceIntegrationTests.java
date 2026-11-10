@@ -76,6 +76,26 @@ class BloodRequestServiceIntegrationTests {
 	}
 
 	@Test
+	void hospitalCannotSelectCandidateThatCannotFullyFulfilRequest() {
+		Jwt hospitalJwt = login("hospital.demo@hemogrid.local", "HospitalDemo123!");
+		BloodRequestResponse created = bloodRequestService.createRequest(hospitalJwt, createONegativeRequest());
+		CandidateResponse partialCandidate = bloodRequestService.getCandidates(hospitalJwt, created.id())
+				.candidates()
+				.stream()
+				.filter(candidate -> !candidate.canFullyFulfil())
+				.findFirst()
+				.orElseThrow();
+
+		assertThatThrownBy(() -> bloodRequestService.selectProvider(
+				hospitalJwt,
+				created.id(),
+				new SelectProviderRequest(partialCandidate.organizationId())
+		))
+				.isInstanceOf(BusinessException.class)
+				.hasMessage("The selected provider no longer has enough matching free inventory.");
+	}
+
+	@Test
 	void bloodBankUserCannotCreateHospitalRequest() {
 		Jwt bankJwt = login("bank.demo@hemogrid.local", "BankDemo123!");
 

@@ -123,18 +123,18 @@ public class BloodRequestService {
 			);
 		}
 
-		boolean stillHasMatchingInventory = inventoryRepository.findByOrganizationIdAndBloodGroupAndComponent(
+		boolean canStillFullyFulfil = inventoryRepository.findByOrganizationIdAndBloodGroupAndComponent(
 						provider.getId(),
 						bloodRequest.getBloodGroup(),
 						bloodRequest.getComponent()
 				)
-				.map(inventory -> inventory.unitsFree() > 0)
+				.map(inventory -> inventory.unitsFree() >= bloodRequest.getUnitsRequired())
 				.orElse(false);
-		if (!stillHasMatchingInventory) {
+		if (!canStillFullyFulfil) {
 			throw new BusinessException(
 					HttpStatus.CONFLICT,
 					ErrorCode.INSUFFICIENT_INVENTORY,
-					"The selected provider no longer has matching free inventory."
+					"The selected provider no longer has enough matching free inventory."
 			);
 		}
 
