@@ -33,13 +33,18 @@ HemoGrid Backend is a high-reliability **Spring Boot 4.1 modular monolith** engi
 
 ### Live Links & Demo:
 - **Demo video (3 minutes or less)**: *[YouTube unlisted / Google Drive link]*
-- **Live API Endpoint**: `https://<YOUR-RENDER-BACKEND-URL>/api/v1`
-- **Interactive Swagger UI**: `https://<YOUR-RENDER-BACKEND-URL>/swagger-ui.html`
-- **Actuator Health Probe**: `https://<YOUR-RENDER-BACKEND-URL>/actuator/health`
+- **Live API Endpoint**: `https://hemo-grid-backend.onrender.com/api/v1`
+- **Interactive Swagger UI**: `https://hemo-grid-backend.onrender.com/swagger-ui.html`
+- **Actuator Health Probe**: `https://hemo-grid-backend.onrender.com/actuator/health`
 - **Test log-ins**:
-  - **Hospital Staff**: `hospital.demo@hemogrid.local` / `HospitalDemo123!`
-  - **Blood Bank Officer**: `bank.demo@hemogrid.local` / `BankDemo123!`
-  - **Network Admin**: `admin.demo@hemogrid.local` / `AdminDemo123!`
+  - **Hospital Staff (National Referral)**: `hospital.demo@hemogrid.local` / `HospitalDemo123!`
+  - **Blood Bank (Nairobi RBTC - Optimal Match)**: `bank.demo@hemogrid.local` / `BankDemo123!`
+  - **Blood Bank (Embu RBTC)**: `embu.bank@hemogrid.local` / `BankDemo123!`
+  - **Blood Bank (Mombasa RBTC)**: `mombasa.bank@hemogrid.local` / `BankDemo123!`
+  - **Blood Bank (Kisumu RBTC)**: `kisumu.bank@hemogrid.local` / `BankDemo123!`
+  - **Blood Bank (Nakuru RBTC)**: `nakuru.bank@hemogrid.local` / `BankDemo123!`
+  - **Blood Bank (Eldoret RBTC)**: `eldoret.bank@hemogrid.local` / `BankDemo123!`
+  - **Network Administrator**: `admin.demo@hemogrid.local` / `AdminDemo123!`
 
 ---
 
