@@ -1,0 +1,49 @@
+# Java 21 and PostgreSQL checks for dispatch, approval and reservation behavior.
+name: Backend verification
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: hemogrid_test
+          POSTGRES_USER: hemogrid
+          POSTGRES_PASSWORD: hemogrid
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hemogrid -d hemogrid_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_URL: jdbc:postgresql://localhost:5432/hemogrid_test
+      DB_USERNAME: hemogrid
+      DB_PASSWORD: hemogrid
+      JWT_SECRET: ci-only-jwt-secret-for-synthetic-test-data-32-bytes
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Check planner and reproduce benchmark evidence
+        run: |
+          bash scripts/benchmark_batch_dispatch.sh
+          cmp docs/dispatch-benchmark.json target/dispatch-benchmark/summary.json
+          cmp docs/batch-dispatch-benchmark.json target/batch-dispatch-benchmark/summary.json
+      - name: Run Spring and PostgreSQL regression suite
+        run: ./mvnw -B -ntp test

@@ -48,7 +48,7 @@ public class ProviderRequestController {
 	@PostMapping("/{requestId}/accept")
 	@Operation(summary = "Accept a selected request and reserve inventory")
 	@ApiResponse(responseCode = "200", description = "Request accepted")
-	@ApiResponse(responseCode = "409", description = "Invalid state or insufficient inventory")
+	@ApiResponse(responseCode = "409", description = "Invalid state, cold-chain hold or insufficient inventory")
 	public BloodRequestResponse accept(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID requestId) {
 		return providerRequestService.accept(jwt, requestId);
 	}
@@ -64,7 +64,7 @@ public class ProviderRequestController {
 	@PostMapping("/{requestId}/status")
 	@Operation(summary = "Progress an accepted request through fulfilment statuses")
 	@ApiResponse(responseCode = "200", description = "Request status updated")
-	@ApiResponse(responseCode = "409", description = "Invalid transition")
+	@ApiResponse(responseCode = "409", description = "Invalid transition or cold-chain hold")
 	public BloodRequestResponse updateStatus(
 			@AuthenticationPrincipal Jwt jwt,
 			@PathVariable UUID requestId,

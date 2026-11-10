@@ -11,8 +11,7 @@ import com.sentinel.hemo_grid.request.domain.MatchCompatibilityType;
 import org.springframework.stereotype.Component;
 
 /**
- * Generates clinical explainability rationales for smart dispatch decisions.
- * Edge-native and self-contained; guarantees zero network dependencies or API token failures.
+ * Explains the recorded inventory rules and transport assumptions behind a proposal.
  */
 @Component
 public class DispatchRationaleGenerator {
@@ -30,7 +29,8 @@ public class DispatchRationaleGenerator {
 			double fridgeTempCelsius,
 			int quarantinedUnitsExcluded,
 			boolean conservationRuleApplied,
-			String policyRationale
+			String policyRationale,
+			boolean corridorEstimate
 	) {}
 
 	public String generateRationaleString(RationaleContext ctx) {
@@ -43,21 +43,24 @@ public class DispatchRationaleGenerator {
 
 		// 1. Clinical Compatibility & Conservation
 		if (ctx.request().isUnknownPatientBloodGroup()) {
-			bullets.add("Emergency Trauma Protocol: Universal uncrossmatched O- donor blood allocated for unknown patient blood group.");
+			bullets.add(String.format(
+					"Trauma request with unknown group: configured policy proposes %s inventory. Qualified staff must confirm suitability and authorize release.",
+					formatBloodGroup(ctx.offeredBloodGroup())
+			));
 		} else if (ctx.matchType() == MatchCompatibilityType.EXACT) {
 			bullets.add(String.format(
-					"Exact Match (%s): Optimal compatibility with zero hemolytic risk.",
+					"Exact inventory group (%s) under the configured policy. Qualified staff must confirm suitability and authorize release.",
 					formatBloodGroup(ctx.offeredBloodGroup())
 			));
 		} else {
 			if (ctx.conservationRuleApplied()) {
 				bullets.add(String.format(
-						"O-Negative Conservation: Conserved reserve dispensed as emergency fallback; %s recipient held pending standard stocks.",
+						"Reserve-conservation rule applies to this proposal for a %s request. Qualified staff approval is required.",
 						formatBloodGroup(ctx.request().getBloodGroup())
 				));
 			} else {
 				bullets.add(String.format(
-						"Clinical Substitute (%s): Clinically compatible donor for %s recipient preserving scarce O- reserves.",
+						"Proposed inventory substitute (%s) for %s under configured rules. Qualified staff must confirm suitability.",
 						formatBloodGroup(ctx.offeredBloodGroup()),
 						formatBloodGroup(ctx.request().getBloodGroup())
 				));
@@ -68,13 +71,13 @@ public class DispatchRationaleGenerator {
 		if (ctx.coldChainVerified()) {
 			bullets.add(String.format(
 					Locale.US,
-					"Cold-Chain Verified: Telemetry confirms fridge at %.1f°C (within WHO 2.0–6.0°C safety envelope).",
+					"Recorded fridge temperature %.1f°C satisfies the prototype's configured 2–6°C rule. Staff must confirm current telemetry and unit condition.",
 					ctx.fridgeTempCelsius()
 			));
 		} else {
 			bullets.add(String.format(
 					Locale.US,
-					"Cold-Chain Excursion: Fridge telemetry at %.1f°C; %d compromised units excluded from dispatch.",
+					"Cold-chain hold: recorded temperature %.1f°C; %d units recorded as quarantined. This inventory requires staff review.",
 					ctx.fridgeTempCelsius(),
 					ctx.quarantinedUnitsExcluded()
 			));
@@ -87,16 +90,20 @@ public class DispatchRationaleGenerator {
 					: "";
 			bullets.add(String.format(
 					Locale.US,
-					"Road Transit ETA: %.2fh estimated corridor transit%s.",
+					"Road Transit ETA: %.2fh%s from %s.",
 					ctx.estimatedTransitHours(),
-					distanceText
+					distanceText,
+					ctx.corridorEstimate() ? "a seeded corridor estimate" : "straight-line distance at an assumed 45 km/h"
 			));
+			bullets.add("ETA uncertainty is uncalibrated. Confirm transport with the supplying bank. Preparation, approval and traffic delays are additional.");
+		} else {
+			bullets.add("Transit ETA is unavailable. Staff must confirm the transport plan with the supplying bank.");
 		}
 
 		if (ctx.provider().getSavedTransitHours() != null && ctx.provider().getSavedTransitHours() > 0) {
 			bullets.add(String.format(
 					Locale.US,
-					"Corridor Optimization: Route bypass saves %.2fh compared to legacy supply centre.",
+					"Seeded route metadata estimates %.2fh savings relative to the assigned supply centre. This figure requires operational validation.",
 					ctx.provider().getSavedTransitHours()
 			));
 		}

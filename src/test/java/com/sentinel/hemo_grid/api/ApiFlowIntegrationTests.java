@@ -76,6 +76,21 @@ class ApiFlowIntegrationTests {
 	}
 
 	@Test
+	void networkPlanningEndpointsRequirePlatformCoordinatorRole() throws Exception {
+		mockMvc.perform(get("/api/v1/dispatch-plans/requests")).andExpect(status().isUnauthorized());
+		String hospital = login("hospital.demo@hemogrid.local", "HospitalDemo123!");
+		mockMvc.perform(get("/api/v1/dispatch-plans/requests").header(HttpHeaders.AUTHORIZATION, bearer(hospital)))
+				.andExpect(status().isForbidden());
+		String admin = login("admin.demo@hemogrid.local", "AdminDemo123!");
+		mockMvc.perform(get("/api/v1/dispatch-plans/requests").header(HttpHeaders.AUTHORIZATION, bearer(admin)))
+				.andExpect(status().isOk());
+		mockMvc.perform(post("/api/v1/dispatch-plans/preview")
+				.header(HttpHeaders.AUTHORIZATION, bearer(admin)).contentType(MediaType.APPLICATION_JSON)
+				.content(json(Map.of("requestIds", java.util.List.of(), "staffApproved", false))))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
 	void frontendDemoFlowWorksThroughHttpEndpoints() throws Exception {
 		String hospitalToken = login("hospital.demo@hemogrid.local", "HospitalDemo123!");
 		String bankToken = login("bank.demo@hemogrid.local", "BankDemo123!");

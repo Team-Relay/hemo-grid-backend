@@ -1,5 +1,14 @@
 # Backend testing
 
+The planner core also has a dependency-free check and a controlled scenario comparison.
+
+```bash
+bash scripts/check_planner.sh
+bash scripts/benchmark_batch_dispatch.sh
+```
+
+`BatchDispatchPlannerTest` runs the same core regression checks through JUnit. `DispatchPlanServiceIntegrationTests` covers coordinator access, explicit approval, current shared stock, quarantine changes and hospital ownership of request approval. The HTTP suite also checks planner endpoint authorization.
+
 Integration tests use the real Spring context and PostgreSQL because transaction
 locking, unique constraints, Flyway migrations, and organization-scoped queries
 cannot be proven faithfully with an in-memory substitute.

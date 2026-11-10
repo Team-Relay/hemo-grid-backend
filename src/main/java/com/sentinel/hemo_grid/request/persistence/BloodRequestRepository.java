@@ -7,12 +7,18 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.sentinel.hemo_grid.request.domain.BloodRequest;
+import com.sentinel.hemo_grid.request.domain.RequestStatus;
+import com.sentinel.hemo_grid.request.domain.RequestUrgency;
+import com.sentinel.hemo_grid.inventory.domain.BloodComponent;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 public interface BloodRequestRepository extends JpaRepository<BloodRequest, UUID> {
+
+	List<BloodRequest> findTop100ByStatusAndUrgencyAndComponentOrderByRequestedAtAsc(
+			RequestStatus status, RequestUrgency urgency, BloodComponent component);
 
 	@Query("""
 			select request from BloodRequest request

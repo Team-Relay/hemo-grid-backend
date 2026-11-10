@@ -66,7 +66,8 @@ public class ProviderRequestService {
 		}
 
 		BloodInventory inventory = lockMatchingInventory(request);
-		if (inventory.unitsFree() < request.getUnitsRequired()) {
+		requireSafeInventory(inventory);
+		if (inventory.dispatchableUnitsFree() < request.getUnitsRequired()) {
 			throw new BusinessException(
 					HttpStatus.CONFLICT,
 					ErrorCode.INSUFFICIENT_INVENTORY,
@@ -104,10 +105,13 @@ public class ProviderRequestService {
 			throw invalidStatus("Provider status updates can only move to PREPARING, IN_TRANSIT, or DELIVERED.");
 		}
 
+		BloodInventory inventory = lockMatchingInventory(request);
+		requireSafeInventory(inventory);
+
 		if (nextStatus == RequestStatus.DELIVERED) {
 			try {
 				request.progressTo(nextStatus);
-				lockMatchingInventory(request).consumeReservation(request.getUnitsRequired());
+				inventory.consumeReservation(request.getUnitsRequired());
 				return BloodRequestResponse.from(request);
 			}
 			catch (IllegalStateException exception) {
@@ -151,6 +155,17 @@ public class ProviderRequestService {
 
 	private BusinessException invalidStatus(String message) {
 		return new BusinessException(HttpStatus.CONFLICT, ErrorCode.INVALID_REQUEST_STATUS, message);
+	}
+
+	private void requireSafeInventory(BloodInventory inventory) {
+		if (!inventory.isColdChainVerified()
+				|| inventory.getUnitsAvailable() - inventory.getQuarantinedTempExcursionUnits() < inventory.getUnitsReserved()) {
+			throw new BusinessException(
+					HttpStatus.CONFLICT,
+					ErrorCode.COLD_CHAIN_HOLD,
+					"Inventory is on a cold-chain hold. Qualified staff must resolve the hold before this request can proceed."
+			);
+		}
 	}
 
 	private BusinessException invalidTransition() {

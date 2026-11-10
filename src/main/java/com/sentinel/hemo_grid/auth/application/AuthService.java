@@ -143,4 +143,13 @@ public class AuthService {
 	private BusinessException invalidCredentials() {
 		return new BusinessException(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED, "Invalid email or password.");
 	}
+
+	@Transactional(readOnly = true)
+	public AppUser requirePlatformAdmin(Jwt jwt) {
+		AppUser user = requireCurrentUser(jwt);
+		if (user.getRole() != UserRole.PLATFORM_ADMIN) {
+			throw new BusinessException(HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN, "Only platform coordinators can preview network dispatch plans.");
+		}
+		return user;
+	}
 }

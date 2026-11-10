@@ -1,5 +1,7 @@
 # HemoGrid Frontend API Handoff
 
+The optional coordinator planning flow is documented in [Dispatch planning API](DISPATCH_PLANNING.md). It adds a pending-request list and a batch-preview endpoint, then uses the existing hospital selection and bank acceptance actions.
+
 This is the frontend-facing contract for the current backend milestone. Keep this file open while building the VS Code frontend.
 
 ## Backend URLs
@@ -431,4 +433,3 @@ Polling every 3 to 5 seconds is enough for the hackathon demo.
 9. Move status to `IN_TRANSIT`.
 10. Move status to `DELIVERED`.
 11. Confirm the hospital request status and blood-bank inventory changed.
-
