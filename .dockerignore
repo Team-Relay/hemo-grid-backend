@@ -1,0 +1,11 @@
+# Keep local state, editor metadata, secrets, and compiled output out of the build context.
+.git
+.github
+.idea
+.vscode
+.env
+target
+*.iml
+*.log
+docker-compose*.yml
+HELP.md

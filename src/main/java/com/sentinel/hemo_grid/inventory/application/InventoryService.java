@@ -1,3 +1,5 @@
+/* InventoryService coordinates inventory use cases and enforces their business invariants. */
+
 package com.sentinel.hemo_grid.inventory.application;
 
 import java.util.List;

@@ -1,3 +1,5 @@
+/* ErrorCode owns the exception boundary of the common module. */
+
 package com.sentinel.hemo_grid.common.exception;
 
 public enum ErrorCode {

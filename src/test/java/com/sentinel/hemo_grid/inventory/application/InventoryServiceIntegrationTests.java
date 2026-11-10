@@ -1,3 +1,5 @@
+/* InventoryServiceIntegrationTests verifies the inventory workflow against the real Spring and PostgreSQL boundaries. */
+
 package com.sentinel.hemo_grid.inventory.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,6 +64,7 @@ class InventoryServiceIntegrationTests {
 		assertThat(response.unitsAvailable()).isEqualTo(9);
 		assertThat(response.unitsReserved()).isZero();
 		assertThat(response.unitsFree()).isEqualTo(9);
+		assertThat(response.updatedAt()).isNotNull();
 	}
 
 	@Test

@@ -1,5 +1,8 @@
+/* InventoryResponse is a safe outbound API projection for the inventory module. */
+
 package com.sentinel.hemo_grid.inventory.api;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import com.sentinel.hemo_grid.inventory.domain.BloodComponent;
@@ -24,7 +27,10 @@ public record InventoryResponse(
 		int unitsReserved,
 
 		@Schema(example = "5")
-		int unitsFree
+		int unitsFree,
+
+		@Schema(description = "Last persisted inventory change in UTC")
+		Instant updatedAt
 ) {
 
 	public static InventoryResponse from(BloodInventory inventory) {
@@ -34,7 +40,8 @@ public record InventoryResponse(
 				inventory.getComponent(),
 				inventory.getUnitsAvailable(),
 				inventory.getUnitsReserved(),
-				inventory.unitsFree()
+				inventory.unitsFree(),
+				inventory.getUpdatedAt()
 		);
 	}
 }

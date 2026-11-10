@@ -1,3 +1,5 @@
+/* OrganizationResponse is a safe outbound API projection for the organization module. */
+
 package com.sentinel.hemo_grid.organization.api;
 
 import java.util.UUID;

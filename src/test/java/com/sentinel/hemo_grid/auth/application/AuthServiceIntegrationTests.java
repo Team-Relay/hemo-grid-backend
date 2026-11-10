@@ -1,3 +1,5 @@
+/* AuthServiceIntegrationTests verifies the auth workflow against the real Spring and PostgreSQL boundaries. */
+
 package com.sentinel.hemo_grid.auth.application;
 
 import static org.assertj.core.api.Assertions.assertThat;

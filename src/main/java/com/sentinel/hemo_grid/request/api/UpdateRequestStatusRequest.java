@@ -1,3 +1,5 @@
+/* UpdateRequestStatusRequest is a validated inbound API contract for the request module. */
+
 package com.sentinel.hemo_grid.request.api;
 
 import com.sentinel.hemo_grid.request.domain.RequestStatus;

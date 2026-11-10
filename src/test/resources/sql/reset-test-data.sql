@@ -1,3 +1,5 @@
+-- Restores deterministic integration-test tenants, identities, inventory, and request state.
+
 delete from request_candidates;
 delete from blood_requests;
 

@@ -1,3 +1,5 @@
+/* BloodInventoryRepository is the persistence boundary for the inventory module. */
+
 package com.sentinel.hemo_grid.inventory.persistence;
 
 import java.util.List;

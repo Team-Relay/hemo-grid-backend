@@ -1,3 +1,5 @@
+/* BloodRequest is a validated inbound API contract for the request module. */
+
 package com.sentinel.hemo_grid.request.domain;
 
 import java.time.Instant;

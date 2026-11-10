@@ -1,3 +1,5 @@
+/* MatchingService coordinates matching use cases and enforces their business invariants. */
+
 package com.sentinel.hemo_grid.matching.application;
 
 import java.util.Comparator;

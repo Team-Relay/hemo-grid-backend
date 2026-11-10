@@ -1,3 +1,5 @@
+/* AuthService coordinates auth use cases and enforces their business invariants. */
+
 package com.sentinel.hemo_grid.auth.application;
 
 import java.time.Duration;

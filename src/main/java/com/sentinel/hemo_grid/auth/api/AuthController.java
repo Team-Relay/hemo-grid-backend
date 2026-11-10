@@ -1,3 +1,5 @@
+/* AuthController is the authenticated HTTP boundary for auth operations. */
+
 package com.sentinel.hemo_grid.auth.api;
 
 import com.sentinel.hemo_grid.auth.application.AuthService;

@@ -1,4 +1,8 @@
+/* GlobalExceptionHandler owns the exception boundary of the common module. */
+
 package com.sentinel.hemo_grid.common.exception;
+
+import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -19,7 +23,12 @@ public class GlobalExceptionHandler {
 	ResponseEntity<ApiErrorResponse> handleBusinessException(BusinessException exception, HttpServletRequest request) {
 		return ResponseEntity
 				.status(exception.status())
-				.body(ApiErrorResponse.of(exception.status(), exception.getMessage()));
+				.body(ApiErrorResponse.of(
+						exception.status(),
+						exception.code(),
+						exception.getMessage(),
+						request.getRequestURI()
+				));
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
@@ -27,9 +36,18 @@ public class GlobalExceptionHandler {
 			MethodArgumentNotValidException exception,
 			HttpServletRequest request
 	) {
+		List<FieldErrorResponse> fieldErrors = exception.getBindingResult()
+				.getFieldErrors()
+				.stream()
+				.map(error -> new FieldErrorResponse(error.getField(), error.getDefaultMessage()))
+				.toList();
 		return ResponseEntity
 				.badRequest()
-				.body(ApiErrorResponse.validation("Request validation failed."));
+				.body(ApiErrorResponse.validation(
+						"Request validation failed.",
+						request.getRequestURI(),
+						fieldErrors
+				));
 	}
 
 	@ExceptionHandler(HandlerMethodValidationException.class)
@@ -39,7 +57,11 @@ public class GlobalExceptionHandler {
 	) {
 		return ResponseEntity
 				.badRequest()
-				.body(ApiErrorResponse.validation("Request validation failed."));
+				.body(ApiErrorResponse.validation(
+						"Request validation failed.",
+						request.getRequestURI(),
+						List.of()
+				));
 	}
 
 	@ExceptionHandler(Exception.class)
@@ -48,6 +70,11 @@ public class GlobalExceptionHandler {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		return ResponseEntity
 				.status(status)
-				.body(ApiErrorResponse.of(status, "An unexpected error occurred."));
+				.body(ApiErrorResponse.of(
+						status,
+						ErrorCode.INTERNAL_ERROR,
+						"An unexpected error occurred.",
+						request.getRequestURI()
+				));
 	}
 }

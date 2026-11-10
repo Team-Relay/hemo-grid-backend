@@ -1,3 +1,5 @@
+/* BloodRequestRepository is the persistence boundary for the request module. */
+
 package com.sentinel.hemo_grid.request.persistence;
 
 import java.util.List;
@@ -5,7 +7,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.sentinel.hemo_grid.request.domain.BloodRequest;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 public interface BloodRequestRepository extends JpaRepository<BloodRequest, UUID> {
@@ -41,4 +45,13 @@ public interface BloodRequestRepository extends JpaRepository<BloodRequest, UUID
 			where request.id = :id and request.providerOrganization.id = :providerOrganizationId
 			""")
 	Optional<BloodRequest> findByIdAndProviderOrganizationId(UUID id, UUID providerOrganizationId);
+
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("""
+			select request from BloodRequest request
+			join fetch request.requesterOrganization
+			left join fetch request.providerOrganization
+			where request.id = :id and request.providerOrganization.id = :providerOrganizationId
+			""")
+	Optional<BloodRequest> lockByIdAndProviderOrganizationId(UUID id, UUID providerOrganizationId);
 }

@@ -1,3 +1,5 @@
+/* JacksonConfig centralizes one production-facing Spring configuration concern. */
+
 package com.sentinel.hemo_grid.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

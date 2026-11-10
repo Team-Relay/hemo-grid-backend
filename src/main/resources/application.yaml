@@ -1,3 +1,5 @@
+# Runtime defaults; every secret and deployment-specific address is supplied by environment.
+
 spring:
   application:
     name: hemogrid
@@ -21,9 +23,22 @@ spring:
     locations: classpath:db/migration
 
 server:
-  port: ${SERVER_PORT:8080}
+  # Render supplies PORT; SERVER_PORT remains available for local overrides.
+  port: ${PORT:${SERVER_PORT:8080}}
+  forward-headers-strategy: framework
+  shutdown: graceful
+  compression:
+    enabled: true
+
+spring.lifecycle:
+  timeout-per-shutdown-phase: 20s
 
 management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
   endpoints:
     web:
       exposure:

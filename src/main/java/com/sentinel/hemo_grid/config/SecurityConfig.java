@@ -1,3 +1,5 @@
+/* Central HTTP authorization, CORS, stateless-session, and security-error policy. */
+
 package com.sentinel.hemo_grid.config;
 
 import java.util.List;
@@ -100,6 +102,6 @@ public class SecurityConfig {
 	) throws java.io.IOException {
 		response.setStatus(status.value());
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-		objectMapper.writeValue(response.getWriter(), ApiErrorResponse.of(status, message));
+		objectMapper.writeValue(response.getWriter(), ApiErrorResponse.of(status, code, message, path));
 	}
 }

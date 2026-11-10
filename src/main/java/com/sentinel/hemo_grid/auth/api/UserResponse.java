@@ -1,3 +1,5 @@
+/* UserResponse is a safe outbound API projection for the auth module. */
+
 package com.sentinel.hemo_grid.auth.api;
 
 import java.util.UUID;

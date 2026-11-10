@@ -1,3 +1,5 @@
+/* Application bootstrap and configuration-properties entry point for the HemoGrid API. */
+
 package com.sentinel.hemo_grid;
 
 import org.springframework.boot.SpringApplication;

@@ -1,3 +1,5 @@
+/* UserRepository is the persistence boundary for the auth module. */
+
 package com.sentinel.hemo_grid.auth.persistence;
 
 import java.util.Optional;

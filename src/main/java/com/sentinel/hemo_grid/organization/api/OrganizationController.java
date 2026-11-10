@@ -1,3 +1,5 @@
+/* OrganizationController is the authenticated HTTP boundary for organization operations. */
+
 package com.sentinel.hemo_grid.organization.api;
 
 import com.sentinel.hemo_grid.auth.application.AuthService;

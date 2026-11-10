@@ -1,3 +1,5 @@
+/* OpenApiConfig centralizes one production-facing Spring configuration concern. */
+
 package com.sentinel.hemo_grid.config;
 
 import io.swagger.v3.oas.models.Components;

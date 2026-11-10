@@ -1,3 +1,5 @@
+/* BusinessException owns the exception boundary of the common module. */
+
 package com.sentinel.hemo_grid.common.exception;
 
 import org.springframework.http.HttpStatus;

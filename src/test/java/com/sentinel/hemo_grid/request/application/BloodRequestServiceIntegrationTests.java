@@ -1,3 +1,5 @@
+/* BloodRequestServiceIntegrationTests verifies the request workflow against the real Spring and PostgreSQL boundaries. */
+
 package com.sentinel.hemo_grid.request.application;
 
 import static org.assertj.core.api.Assertions.assertThat;

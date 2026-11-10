@@ -1,3 +1,5 @@
+/* OrganizationRepository is the persistence boundary for the organization module. */
+
 package com.sentinel.hemo_grid.organization.persistence;
 
 import java.util.UUID;

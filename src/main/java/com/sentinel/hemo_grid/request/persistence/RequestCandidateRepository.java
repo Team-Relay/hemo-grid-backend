@@ -1,3 +1,5 @@
+/* RequestCandidateRepository is the persistence boundary for the request module. */
+
 package com.sentinel.hemo_grid.request.persistence;
 
 import java.util.List;

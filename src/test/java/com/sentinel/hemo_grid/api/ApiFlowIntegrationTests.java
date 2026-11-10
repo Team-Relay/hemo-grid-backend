@@ -1,3 +1,5 @@
+/* ApiFlowIntegrationTests verifies the api workflow against the real Spring and PostgreSQL boundaries. */
+
 package com.sentinel.hemo_grid.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,7 +49,30 @@ class ApiFlowIntegrationTests {
 				.andExpect(status().isUnauthorized())
 				.andExpect(jsonPath("$.status").value(401))
 				.andExpect(jsonPath("$.error").value("UNAUTHORIZED"))
+				.andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+				.andExpect(jsonPath("$.path").value("/api/v1/auth/me"))
+				.andExpect(jsonPath("$.fieldErrors", hasSize(0)))
 				.andExpect(jsonPath("$.message").value("Authentication is required to access this resource."));
+	}
+
+	@Test
+	void validationErrorsExposeStableFieldDetails() throws Exception {
+		String hospitalToken = login("hospital.demo@hemogrid.local", "HospitalDemo123!");
+
+		mockMvc.perform(post("/api/v1/blood-requests")
+						.header(HttpHeaders.AUTHORIZATION, bearer(hospitalToken))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(json(Map.of(
+								"bloodGroup", "O_NEGATIVE",
+								"component", "RED_CELLS",
+								"unitsRequired", 0,
+								"urgency", "CRITICAL"
+						))))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+				.andExpect(jsonPath("$.path").value("/api/v1/blood-requests"))
+				.andExpect(jsonPath("$.fieldErrors[0].field").value("unitsRequired"))
+				.andExpect(jsonPath("$.fieldErrors[0].message").isNotEmpty());
 	}
 
 	@Test

@@ -1,3 +1,5 @@
+/* HaversineDistanceCalculator owns the application boundary of the matching module. */
+
 package com.sentinel.hemo_grid.matching.application;
 
 import org.springframework.stereotype.Component;

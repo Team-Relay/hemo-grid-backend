@@ -1,3 +1,5 @@
+/* BloodInventory belongs to the authoritative inventory domain model. */
+
 package com.sentinel.hemo_grid.inventory.domain;
 
 import java.time.Instant;

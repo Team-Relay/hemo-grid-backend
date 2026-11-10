@@ -1,3 +1,5 @@
+/* ProviderRequestService coordinates request use cases and enforces their business invariants. */
+
 package com.sentinel.hemo_grid.request.application;
 
 import java.util.List;
@@ -52,7 +54,9 @@ public class ProviderRequestService {
 
 	@Transactional
 	public BloodRequestResponse accept(Jwt jwt, UUID requestId) {
-		BloodRequest request = requireProviderRequest(jwt, requestId);
+		// Lock the request before inspecting its state so concurrent accepts cannot
+		// reserve the same request twice even when the inventory has spare capacity.
+		BloodRequest request = lockProviderRequest(jwt, requestId);
 		if (request.getStatus() == RequestStatus.ACCEPTED || request.getStatus() == RequestStatus.PREPARING
 				|| request.getStatus() == RequestStatus.IN_TRANSIT || request.getStatus() == RequestStatus.DELIVERED) {
 			return BloodRequestResponse.from(request);
@@ -77,7 +81,7 @@ public class ProviderRequestService {
 
 	@Transactional
 	public BloodRequestResponse decline(Jwt jwt, UUID requestId) {
-		BloodRequest request = requireProviderRequest(jwt, requestId);
+		BloodRequest request = lockProviderRequest(jwt, requestId);
 		if (request.getStatus() == RequestStatus.DECLINED) {
 			return BloodRequestResponse.from(request);
 		}
@@ -91,7 +95,7 @@ public class ProviderRequestService {
 
 	@Transactional
 	public BloodRequestResponse updateStatus(Jwt jwt, UUID requestId, UpdateRequestStatusRequest statusRequest) {
-		BloodRequest request = requireProviderRequest(jwt, requestId);
+		BloodRequest request = lockProviderRequest(jwt, requestId);
 		RequestStatus nextStatus = statusRequest.status();
 		if (nextStatus == request.getStatus()) {
 			return BloodRequestResponse.from(request);
@@ -124,6 +128,16 @@ public class ProviderRequestService {
 		AppUser user = authService.requireBloodBankUser(jwt);
 		return requestRepository.findByIdAndProviderOrganizationId(requestId, user.getOrganization().getId())
 				.orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND, "Provider request not found."));
+	}
+
+	private BloodRequest lockProviderRequest(Jwt jwt, UUID requestId) {
+		AppUser user = authService.requireBloodBankUser(jwt);
+		return requestRepository.lockByIdAndProviderOrganizationId(requestId, user.getOrganization().getId())
+				.orElseThrow(() -> new BusinessException(
+						HttpStatus.NOT_FOUND,
+						ErrorCode.RESOURCE_NOT_FOUND,
+						"Provider request not found."
+				));
 	}
 
 	private BloodInventory lockMatchingInventory(BloodRequest request) {

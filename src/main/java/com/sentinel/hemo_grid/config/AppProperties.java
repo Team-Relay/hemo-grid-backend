@@ -1,3 +1,5 @@
+/* AppProperties centralizes one production-facing Spring configuration concern. */
+
 package com.sentinel.hemo_grid.config;
 
 import java.util.List;

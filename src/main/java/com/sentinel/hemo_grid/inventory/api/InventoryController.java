@@ -1,3 +1,5 @@
+/* InventoryController is the authenticated HTTP boundary for inventory operations. */
+
 package com.sentinel.hemo_grid.inventory.api;
 
 import java.util.List;

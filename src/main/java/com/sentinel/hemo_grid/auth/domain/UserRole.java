@@ -1,3 +1,5 @@
+/* UserRole belongs to the authoritative auth domain model. */
+
 package com.sentinel.hemo_grid.auth.domain;
 
 public enum UserRole {

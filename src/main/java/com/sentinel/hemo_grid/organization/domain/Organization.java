@@ -1,3 +1,5 @@
+/* Organization belongs to the authoritative organization domain model. */
+
 package com.sentinel.hemo_grid.organization.domain;
 
 import java.time.Instant;

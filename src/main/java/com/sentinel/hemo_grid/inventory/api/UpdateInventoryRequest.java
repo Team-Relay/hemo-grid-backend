@@ -1,3 +1,5 @@
+/* UpdateInventoryRequest is a validated inbound API contract for the inventory module. */
+
 package com.sentinel.hemo_grid.inventory.api;
 
 import io.swagger.v3.oas.annotations.media.Schema;

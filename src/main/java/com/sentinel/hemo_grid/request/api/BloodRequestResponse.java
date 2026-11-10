@@ -1,3 +1,5 @@
+/* BloodRequestResponse is a safe outbound API projection for the request module. */
+
 package com.sentinel.hemo_grid.request.api;
 
 import java.time.Instant;

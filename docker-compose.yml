@@ -1,3 +1,5 @@
+# Local PostgreSQL and pgAdmin services; production uses Render and Neon instead.
+
 services:
   postgres:
     image: postgres:17
