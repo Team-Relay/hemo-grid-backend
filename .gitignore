@@ -34,8 +34,6 @@ build/
 ### VS Code ###
 
 ### Local environment ###
-.env
-.env.*
 !.env.example
 branch_structure.json
 temp_auto_push.bat
