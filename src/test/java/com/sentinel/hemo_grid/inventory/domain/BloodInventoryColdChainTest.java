@@ -1,6 +1,7 @@
 package com.sentinel.hemo_grid.inventory.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
@@ -30,6 +31,8 @@ class BloodInventoryColdChainTest {
 		// unitsFree reports raw non-reserved count, but dispatchableUnitsFree is 0 for patient safety
 		assertThat(inventory.unitsFree()).isEqualTo(10);
 		assertThat(inventory.dispatchableUnitsFree()).isEqualTo(0);
+		assertThatThrownBy(() -> inventory.reserve(1)).isInstanceOf(IllegalArgumentException.class);
+		assertThat(inventory.getUnitsReserved()).isZero();
 	}
 
 	@Test
@@ -49,6 +52,9 @@ class BloodInventoryColdChainTest {
 		assertThat(inventory.isColdChainVerified()).isTrue();
 		assertThat(inventory.unitsFree()).isEqualTo(9); // 10 available - 1 reserved
 		assertThat(inventory.dispatchableUnitsFree()).isEqualTo(6); // 9 - 3 quarantined
+		assertThatThrownBy(() -> inventory.reserve(7)).isInstanceOf(IllegalArgumentException.class);
+		inventory.reserve(6);
+		assertThat(inventory.dispatchableUnitsFree()).isZero();
 	}
 
 	@Test

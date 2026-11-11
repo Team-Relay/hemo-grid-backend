@@ -178,8 +178,8 @@ public class BloodInventory {
 		if (units < 1) {
 			throw new IllegalArgumentException("units must be positive.");
 		}
-		if (unitsFree() < units) {
-			throw new IllegalArgumentException("not enough free units.");
+		if (dispatchableUnitsFree() < units) {
+			throw new IllegalArgumentException("not enough dispatchable units.");
 		}
 		unitsReserved += units;
 	}

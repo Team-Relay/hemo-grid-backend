@@ -1,0 +1,19 @@
+{
+  "scope": "Independent emergency RBC requests with known groups against the fixed V7 inventory snapshot",
+  "seed_sha256": "906ea8084256f7427fba3cde6c906c2482d1a396779e4e1b75dfdb4e5471e5fd",
+  "facilities": 47,
+  "routes": 2162,
+  "inventory_rows": 225,
+  "historical_request_rows": 2500,
+  "evaluated_requests": 1072,
+  "excluded_requests": 1428,
+  "first_request": "2026-09-09 01:24:45",
+  "last_request": "2026-10-31 23:17:43",
+  "nearest_site": {"eligible_proposals":323,"ineligible_proposals":749,"no_proposal":0,"exact_group_proposals":308,"mean_estimated_transit_hours":0.927152,"median_estimated_transit_hours":0.370000},
+  "nearest_eligible": {"eligible_proposals":1044,"ineligible_proposals":0,"no_proposal":28,"exact_group_proposals":958,"mean_estimated_transit_hours":4.359157,"median_estimated_transit_hours":3.790000},
+  "hemogrid": {"eligible_proposals":1044,"ineligible_proposals":0,"no_proposal":28,"exact_group_proposals":1043,"mean_estimated_transit_hours":4.588736,"median_estimated_transit_hours":3.870000},
+  "paired_faster": 0,
+  "paired_equal": 959,
+  "paired_slower": 85,
+  "hemogrid_heuristic_routes": 0
+}

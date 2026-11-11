@@ -10,11 +10,14 @@ import java.util.UUID;
 import com.sentinel.hemo_grid.auth.api.LoginRequest;
 import com.sentinel.hemo_grid.auth.application.AuthService;
 import com.sentinel.hemo_grid.common.exception.BusinessException;
+import com.sentinel.hemo_grid.common.exception.ErrorCode;
 import com.sentinel.hemo_grid.inventory.api.InventoryResponse;
 import com.sentinel.hemo_grid.inventory.api.UpdateInventoryRequest;
 import com.sentinel.hemo_grid.inventory.application.InventoryService;
 import com.sentinel.hemo_grid.inventory.domain.BloodComponent;
 import com.sentinel.hemo_grid.inventory.domain.BloodGroup;
+import com.sentinel.hemo_grid.inventory.domain.BloodInventory;
+import com.sentinel.hemo_grid.inventory.persistence.BloodInventoryRepository;
 import com.sentinel.hemo_grid.request.api.BloodRequestResponse;
 import com.sentinel.hemo_grid.request.api.CreateBloodRequestRequest;
 import com.sentinel.hemo_grid.request.api.SelectProviderRequest;
@@ -22,6 +25,8 @@ import com.sentinel.hemo_grid.request.api.UpdateRequestStatusRequest;
 import com.sentinel.hemo_grid.request.domain.RequestStatus;
 import com.sentinel.hemo_grid.request.domain.RequestUrgency;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -52,6 +57,9 @@ class ProviderRequestServiceIntegrationTests {
 
 	@Autowired
 	private InventoryService inventoryService;
+
+	@Autowired
+	private BloodInventoryRepository inventoryRepository;
 
 	@Test
 	void acceptingSelectedRequestReservesInventory() {
@@ -131,6 +139,53 @@ class ProviderRequestServiceIntegrationTests {
 		assertThatThrownBy(() -> providerRequestService.accept(bankJwt, selected.id()))
 				.isInstanceOf(BusinessException.class)
 				.hasMessage("The selected blood bank no longer has enough free units to accept this request.");
+	}
+
+	@Test
+	void quarantineAfterHospitalSelectionBlocksBankAcceptance() {
+		Jwt hospitalJwt = login("hospital.demo@hemogrid.local", "HospitalDemo123!");
+		Jwt bankJwt = login("bank.demo@hemogrid.local", "BankDemo123!");
+		BloodRequestResponse selected = createAndSelect(hospitalJwt, MAITAMA_BANK_ID);
+		quarantineMaitamaInventory();
+
+		assertThatThrownBy(() -> providerRequestService.accept(bankJwt, selected.id()))
+				.isInstanceOfSatisfying(BusinessException.class,
+						exception -> assertThat(exception.code()).isEqualTo(ErrorCode.COLD_CHAIN_HOLD));
+		assertThat(getMaitamaONegativeInventory(bankJwt).unitsReserved()).isZero();
+		assertThat(bloodRequestService.getRequest(hospitalJwt, selected.id()).status()).isEqualTo(RequestStatus.REQUESTED);
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = RequestStatus.class, names = {"PREPARING", "IN_TRANSIT", "DELIVERED"})
+	void quarantineAfterAcceptanceBlocksFurtherProgress(RequestStatus nextStatus) {
+		Jwt hospitalJwt = login("hospital.demo@hemogrid.local", "HospitalDemo123!");
+		Jwt bankJwt = login("bank.demo@hemogrid.local", "BankDemo123!");
+		BloodRequestResponse selected = createAndSelect(hospitalJwt, MAITAMA_BANK_ID);
+		providerRequestService.accept(bankJwt, selected.id());
+		RequestStatus expectedStatus = RequestStatus.ACCEPTED;
+		if (nextStatus != RequestStatus.PREPARING) {
+			providerRequestService.updateStatus(bankJwt, selected.id(), new UpdateRequestStatusRequest(RequestStatus.PREPARING));
+			expectedStatus = RequestStatus.PREPARING;
+		}
+		if (nextStatus == RequestStatus.DELIVERED) {
+			providerRequestService.updateStatus(bankJwt, selected.id(), new UpdateRequestStatusRequest(RequestStatus.IN_TRANSIT));
+			expectedStatus = RequestStatus.IN_TRANSIT;
+		}
+		quarantineMaitamaInventory();
+
+		assertThatThrownBy(() -> providerRequestService.updateStatus(bankJwt, selected.id(), new UpdateRequestStatusRequest(nextStatus)))
+				.isInstanceOfSatisfying(BusinessException.class,
+						exception -> assertThat(exception.code()).isEqualTo(ErrorCode.COLD_CHAIN_HOLD));
+		InventoryResponse inventory = getMaitamaONegativeInventory(bankJwt);
+		assertThat(inventory.unitsAvailable()).isEqualTo(5);
+		assertThat(inventory.unitsReserved()).isEqualTo(3);
+		assertThat(bloodRequestService.getRequest(hospitalJwt, selected.id()).status()).isEqualTo(expectedStatus);
+	}
+
+	private void quarantineMaitamaInventory() {
+		BloodInventory inventory = inventoryRepository.findById(O_NEGATIVE_MAITAMA_INVENTORY_ID).orElseThrow();
+		inventory.updateColdChainTelemetry(8.5, inventory.getUnitsAvailable());
+		inventoryRepository.saveAndFlush(inventory);
 	}
 
 	private BloodRequestResponse createAndSelect(Jwt hospitalJwt, UUID providerId) {

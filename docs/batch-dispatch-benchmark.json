@@ -1,0 +1,16 @@
+{
+  "scope": "Controlled concurrent batches of chronological emergency RBC request shapes, with a fresh scenario snapshot per batch",
+  "seed_sha256": "906ea8084256f7427fba3cde6c906c2482d1a396779e4e1b75dfdb4e5471e5fd",
+  "source_requests": 1072,
+  "scenarios": [
+    {"scenario":"seed_snapshot","batch_size":2,"batches":536,"greedy_complete":508,"planner_complete":508,"rescued_batches":0,"paired_batches":508,"baseline_total_hours_paired":4456.600000,"planner_total_hours_paired":4451.920000,"search_limits":0,"max_visited_nodes":9},
+    {"scenario":"stock_capped_at_4","batch_size":2,"batches":536,"greedy_complete":477,"planner_complete":477,"rescued_batches":0,"paired_batches":477,"baseline_total_hours_paired":4365.550000,"planner_total_hours_paired":4282.770000,"search_limits":0,"max_visited_nodes":8},
+    {"scenario":"new_quarantine","batch_size":2,"batches":536,"greedy_complete":508,"planner_complete":508,"rescued_batches":0,"paired_batches":508,"baseline_total_hours_paired":4868.590000,"planner_total_hours_paired":4866.880000,"search_limits":0,"max_visited_nodes":9},
+    {"scenario":"seed_snapshot","batch_size":3,"batches":357,"greedy_complete":329,"planner_complete":329,"rescued_batches":0,"paired_batches":329,"baseline_total_hours_paired":4338.040000,"planner_total_hours_paired":4331.440000,"search_limits":0,"max_visited_nodes":18},
+    {"scenario":"stock_capped_at_4","batch_size":3,"batches":357,"greedy_complete":294,"planner_complete":297,"rescued_batches":3,"paired_batches":294,"baseline_total_hours_paired":4113.010000,"planner_total_hours_paired":4022.790000,"search_limits":0,"max_visited_nodes":18},
+    {"scenario":"new_quarantine","batch_size":3,"batches":357,"greedy_complete":329,"planner_complete":329,"rescued_batches":0,"paired_batches":329,"baseline_total_hours_paired":4841.620000,"planner_total_hours_paired":4837.780000,"search_limits":0,"max_visited_nodes":15},
+    {"scenario":"seed_snapshot","batch_size":5,"batches":214,"greedy_complete":187,"planner_complete":187,"rescued_batches":0,"paired_batches":187,"baseline_total_hours_paired":4195.910000,"planner_total_hours_paired":4187.520000,"search_limits":0,"max_visited_nodes":60},
+    {"scenario":"stock_capped_at_4","batch_size":5,"batches":214,"greedy_complete":146,"planner_complete":150,"rescued_batches":4,"paired_batches":146,"baseline_total_hours_paired":3803.900000,"planner_total_hours_paired":3615.120000,"search_limits":0,"max_visited_nodes":60},
+    {"scenario":"new_quarantine","batch_size":5,"batches":214,"greedy_complete":186,"planner_complete":186,"rescued_batches":0,"paired_batches":186,"baseline_total_hours_paired":4521.790000,"planner_total_hours_paired":4513.810000,"search_limits":0,"max_visited_nodes":60}
+  ]
+}

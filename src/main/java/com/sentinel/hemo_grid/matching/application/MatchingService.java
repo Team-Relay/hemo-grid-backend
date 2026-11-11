@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -157,7 +156,8 @@ public class MatchingService {
 				inventory.getFridgeTempCelsius(),
 				inventory.getQuarantinedTempExcursionUnits(),
 				conservationRuleApplied,
-				policyRationale
+				policyRationale,
+				route.isPresent()
 		);
 
 		String rationaleString = rationaleGenerator.generateRationaleString(ctx);
@@ -214,20 +214,14 @@ public class MatchingService {
 	}
 
 	private Comparator<SmartMatch> matchComparator() {
-		return Comparator
-				// Gate 1: Full capacity with verified dispatchable units
-				.comparing(SmartMatch::canFullyFulfil, Comparator.reverseOrder())
-				// Gate 2: Cold chain verified (quarantined facilities sorted lower)
-				.thenComparing(SmartMatch::coldChainVerified, Comparator.reverseOrder())
-				// Gate 3: Preference tier (Exact match = 1, compatible substitute = 2, O- emergency substitute = 3)
-				.thenComparing(SmartMatch::preferenceRank)
-				// Gate 4: Real road transit ETA
-				.thenComparing(match -> match.estimatedTransitHours() == null)
-				.thenComparing(SmartMatch::estimatedTransitHours, Comparator.nullsLast(Comparator.naturalOrder()))
-				// Gate 5: Available dispatchable reserve margin
-				.thenComparing(SmartMatch::dispatchableUnits, Comparator.reverseOrder())
-				// Gate 6: Deterministic facility name
-				.thenComparing(match -> match.provider().getName().toLowerCase(Locale.ROOT));
+		return Comparator.comparing(match -> new DispatchPriority(
+				match.canFullyFulfil(),
+				match.coldChainVerified(),
+				match.preferenceRank(),
+				match.estimatedTransitHours(),
+				match.dispatchableUnits(),
+				match.provider().getName()
+		));
 	}
 
 	private record SmartMatch(

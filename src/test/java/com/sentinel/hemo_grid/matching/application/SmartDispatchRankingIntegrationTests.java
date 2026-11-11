@@ -144,6 +144,8 @@ class SmartDispatchRankingIntegrationTests {
 		assertThat(maitama.distanceKm()).isEqualTo(0.1);
 		assertThat(maitama.estimatedTransitHours()).isEqualTo(0.30);
 		assertThat(maitama.recommendationReasons()).anyMatch(r -> r.contains("Road Transit ETA"));
+		assertThat(maitama.recommendationReasons()).anyMatch(r -> r.contains("seeded corridor estimate"));
+		assertThat(maitama.recommendationReasons()).anyMatch(r -> r.contains("uncertainty is uncalibrated"));
 	}
 
 	@Test
