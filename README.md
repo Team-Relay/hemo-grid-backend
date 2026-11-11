@@ -4,7 +4,7 @@
 
 **Terumo BCT Africa Hackathon 2026 · Emergency request and dispatch**
 
-**[Launch the live app](https://hemogrid-eight.vercel.app/login)** · **[Judges' two-minute project guide](https://github.com/Team-Relay/hemo-grid-frontend/blob/main/docs/JUDGE_START_HERE.md)** · [Frontend source and primary README](https://github.com/Team-Relay/hemo-grid-frontend) · [Hosted transaction proof](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072)
+**[Launch the live app](https://hemogrid-eight.vercel.app/login)** · **[Demo video](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq)** · **[Pitch slides](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1)** · **[Judges' two-minute project guide](https://github.com/Team-Relay/hemo-grid-frontend/blob/main/docs/JUDGE_START_HERE.md)** · [Frontend source and primary README](https://github.com/Team-Relay/hemo-grid-frontend) · [Hosted transaction proof](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072)
 
 **This is the backend and evaluation repository**, not a second product. The frontend handles staff workflows; this service owns matching, quarantine checks, shared-stock planning, authorization, reservations and transactional state. Together they form **one HemoGrid submission**.
 
@@ -44,7 +44,7 @@ One deployed application connects **hospital staff, blood-bank staff and a netwo
 - The current data model tracks aggregate stock by facility, blood group and component. Unit-level traceability, expiry decisions and laboratory crossmatch workflows require further work.
 - The demonstration and benchmark focus on red-cell dispatch. Clinical validation and component-specific handling for other products remain outstanding.
 - SMS, USSD, a complete offline client and automatic rerouting after acceptance remain future work.
-- The coordinator Dispatch Planning interface and core operational workflows are live on Vercel. The submission links below still need the final recording and slide deck.
+- The coordinator Dispatch Planning interface and core operational workflows are live on Vercel, and the demo recording and pitch deck links are published below.
 
 ### Coordinator planning
 
@@ -55,8 +55,8 @@ A platform coordinator can read pending requests with `GET /api/v1/dispatch-plan
 | Item | Location or status |
 | --- | --- |
 | Primary project guide | [Judges' guide and demo walkthrough](https://github.com/Team-Relay/hemo-grid-frontend/blob/main/docs/JUDGE_START_HERE.md) |
-| Demo video, at most 3 minutes | Team recording link pending |
-| Pitch deck, at most 8 slides | Team slides link pending |
+| Demo video, at most 3 minutes | [Watch demo video (Tella)](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq) |
+| Pitch deck, at most 8 slides | [View pitch slides (Google Slides)](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1) |
 | Hosted frontend | [HemoGrid Web App](https://hemogrid-eight.vercel.app) |
 | Hosted backend | [Swagger UI](https://hemo-grid-backend.onrender.com/swagger-ui.html) · [Health](https://hemo-grid-backend.onrender.com/actuator/health) |
 | Local interactive API | [Swagger UI](http://localhost:8080/swagger-ui.html) |
@@ -260,6 +260,15 @@ Team Relay is responsible for the problem definition, operational workflow, inte
 
 AI-assisted changes are checked through executable tests and reproducible comparisons. The [verification run](https://github.com/Team-Relay/hemo-grid-backend/actions/runs/42930682795) passed all 57 backend tests and the planner checks, including 2,000 comparisons against exhaustive enumeration. Team Relay remains accountable for explaining the implementation, design choices, evidence and limitations.
 
+## Open-source libraries
+
+All third-party libraries used by the backend service are declared in [`pom.xml`](pom.xml):
+
+- **Runtime & Build**: Java 21, Apache Maven Wrapper (`mvnw`), Spring Boot Parent `4.1.0` (`spring-boot-maven-plugin`, `maven-compiler-plugin`)
+- **Spring Boot Starters**: `spring-boot-starter-webmvc`, `spring-boot-starter-data-jpa`, `spring-boot-starter-security`, `spring-boot-starter-security-oauth2-resource-server`, `spring-boot-starter-validation`, `spring-boot-starter-jackson`, `spring-boot-starter-actuator`, `spring-boot-starter-websocket`, `spring-boot-starter-flyway`, `spring-boot-devtools`
+- **Database, Migrations & API Docs**: PostgreSQL (`org.postgresql:postgresql`), Flyway PostgreSQL (`org.flywaydb:flyway-database-postgresql`), Springdoc OpenAPI / Swagger UI (`org.springdoc:springdoc-openapi-starter-webmvc-ui` `3.0.3`)
+- **Developer Tooling & Test Starters**: Project Lombok (`org.projectlombok:lombok`), `spring-boot-starter-actuator-test`, `spring-boot-starter-data-jpa-test`, `spring-boot-starter-flyway-test`, `spring-boot-starter-security-oauth2-resource-server-test`, `spring-boot-starter-security-test`, `spring-boot-starter-validation-test`, `spring-boot-starter-webmvc-test`, `spring-boot-starter-websocket-test`
+
 ## Team
 
 **Team Relay**
@@ -273,7 +282,7 @@ AI-assisted changes are checked through executable tests and reproducible compar
 ## Known limits and next steps
 
 1. The verified API revision is deployed; continue monitoring the hosted health/readiness probes and role-scoped demo flows before presenting.
-2. Publish the three-minute video, the deck and the deployed interface links above. Demonstrate both staff roles and a blocked or changed proposal.
+2. The [demo video](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq), [pitch deck](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1) and deployed interface links are published above, covering both staff roles and the planner failure fallback.
 3. Validate the simplified compatibility and temperature rules with the blood-service expert. Extend unit-level traceability and component-specific handling before clinical use.
 4. Calibrate journey estimates and stock freshness, then evaluate an agreed dispatch policy against a nearest eligible baseline using historical stock and observed transfers.
 5. Expand explicit decision audit events, live telemetry, SMS and offline synchronization as the workflow matures.
