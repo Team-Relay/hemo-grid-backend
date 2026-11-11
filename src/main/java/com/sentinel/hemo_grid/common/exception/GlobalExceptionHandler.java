@@ -5,6 +5,8 @@ package com.sentinel.hemo_grid.common.exception;
 import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.persistence.OptimisticLockException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -61,6 +63,18 @@ public class GlobalExceptionHandler {
 						"Request validation failed.",
 						request.getRequestURI(),
 						List.of()
+				));
+	}
+
+	@ExceptionHandler({ObjectOptimisticLockingFailureException.class, OptimisticLockException.class})
+	ResponseEntity<ApiErrorResponse> handleConcurrentModification(Exception exception, HttpServletRequest request) {
+		return ResponseEntity
+				.status(HttpStatus.CONFLICT)
+				.body(ApiErrorResponse.of(
+						HttpStatus.CONFLICT,
+						ErrorCode.CONCURRENT_MODIFICATION,
+						"This request changed while another officer was acting. Refresh its status before trying again.",
+						request.getRequestURI()
 				));
 	}
 
