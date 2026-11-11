@@ -4,7 +4,7 @@
 
 **Terumo BCT Africa Hackathon 2026 · Emergency request and dispatch**
 
-**[Launch the live app](https://hemogrid-eight.vercel.app/login)** · **[Judges' two-minute project guide](https://github.com/Team-Relay/hemo-grid-frontend/blob/main/docs/JUDGE_START_HERE.md)** · [Frontend source and primary README](https://github.com/Team-Relay/hemo-grid-frontend) · [Hosted transaction proof](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072)
+**[Launch the live app](https://hemogrid-eight.vercel.app/login)** · **[Watch the demo video](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq)** · **[View the 8-slide deck](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1)** · **[Judges' two-minute project guide](https://github.com/Team-Relay/hemo-grid-frontend/blob/main/docs/JUDGE_START_HERE.md)** · [Frontend source and primary README](https://github.com/Team-Relay/hemo-grid-frontend) · [Hosted transaction proof](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072)
 
 **This is the backend and evaluation repository**, not a second product. The frontend handles staff workflows; this service owns matching, quarantine checks, shared-stock planning, authorization, reservations and transactional state. Together they form **one HemoGrid submission**.
 
@@ -44,7 +44,7 @@ One deployed application connects **hospital staff, blood-bank staff and a netwo
 - The current data model tracks aggregate stock by facility, blood group and component. Unit-level traceability, expiry decisions and laboratory crossmatch workflows require further work.
 - The demonstration and benchmark focus on red-cell dispatch. Clinical validation and component-specific handling for other products remain outstanding.
 - SMS, USSD, a complete offline client and automatic rerouting after acceptance remain future work.
-- The coordinator Dispatch Planning interface and core operational workflows are live on Vercel. The submission links below still need the final recording and slide deck.
+- The coordinator Dispatch Planning interface and core operational workflows are live on Vercel. The demonstration video and eight-slide deck are linked below.
 
 ### Coordinator planning
 
@@ -55,8 +55,8 @@ A platform coordinator can read pending requests with `GET /api/v1/dispatch-plan
 | Item | Location or status |
 | --- | --- |
 | Primary project guide | [Judges' guide and demo walkthrough](https://github.com/Team-Relay/hemo-grid-frontend/blob/main/docs/JUDGE_START_HERE.md) |
-| Demo video, at most 3 minutes | Team recording link pending |
-| Pitch deck, at most 8 slides | Team slides link pending |
+| Demo video, at most 3 minutes | [Watch HemoGrid on Tella](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq) |
+| Pitch deck, at most 8 slides | [View the Team Relay pitch deck](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1) |
 | Hosted frontend | [HemoGrid Web App](https://hemogrid-eight.vercel.app) |
 | Hosted backend | [Swagger UI](https://hemo-grid-backend.onrender.com/swagger-ui.html) · [Health](https://hemo-grid-backend.onrender.com/actuator/health) |
 | Local interactive API | [Swagger UI](http://localhost:8080/swagger-ui.html) |
@@ -273,7 +273,7 @@ AI-assisted changes are checked through executable tests and reproducible compar
 ## Known limits and next steps
 
 1. The verified API revision is deployed; continue monitoring the hosted health/readiness probes and role-scoped demo flows before presenting.
-2. Publish the three-minute video, the deck and the deployed interface links above. Demonstrate both staff roles and a blocked or changed proposal.
+2. Verify that the published [demo video](https://www.tella.tv/video/hemogrid-emergency-blood-dispatch-dt1odmiq) and [eight-slide pitch deck](https://docs.google.com/presentation/d/1E3NaYlyrvygwXysVymFKq4qBNCi22wb428WnZNdBTfE/edit?slide=id.p1#slide=id.p1) are accessible to judges. Demonstrate both staff roles and a blocked or changed proposal.
 3. Validate the simplified compatibility and temperature rules with the blood-service expert. Extend unit-level traceability and component-specific handling before clinical use.
 4. Calibrate journey estimates and stock freshness, then evaluate an agreed dispatch policy against a nearest eligible baseline using historical stock and observed transfers.
 5. Expand explicit decision audit events, live telemetry, SMS and offline synchronization as the workflow matures.
