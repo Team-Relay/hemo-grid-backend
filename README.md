@@ -251,11 +251,11 @@ AI-assisted changes are checked through executable tests and reproducible compar
 
 **Team Relay**
 
-| Name | Country | Role | Friday presentation | Email |
+| Name | Role | Country | Presenting Friday (in person / online) | Email |
 | --- | --- | --- | --- | --- |
-| Grold Otieno | Kenya | ML and AI research | In person in Nairobi, as recorded by the team | [groldotieno97@gmail.com](mailto:groldotieno97@gmail.com) |
-| Dennis Ikechukwu Okwuchukwu | Nigeria | Team lead, full-stack and systems engineering | Online | [okwuchukwudennis001@gmail.com](mailto:okwuchukwudennis001@gmail.com) |
-| Mubarak Zubair | Nigeria | Product management and clinical data analysis | Online | [mubarak@aluvity.com](mailto:mubarak@aluvity.com) |
+| Grold Otieno | ML and AI research; Epidemiology and Biostatistics | Kenya | In person in Nairobi, as recorded by the team | [groldotieno97@gmail.com](mailto:groldotieno97@gmail.com) |
+| Dennis Ikechukwu Okwuchukwu | Team lead, full-stack and systems engineering | Nigeria | Online | [okwuchukwudennis001@gmail.com](mailto:okwuchukwudennis001@gmail.com) |
+| Mubarak Zubair | Product management and clinical data analysis | Nigeria | Online | [mubarak@aluvity.com](mailto:mubarak@aluvity.com) |
 
 ## Known limits and next steps
 
