@@ -40,7 +40,7 @@ One workflow connects two operational roles.
 - The current data model tracks aggregate stock by facility, blood group and component. Unit-level traceability, expiry decisions and laboratory crossmatch workflows require further work.
 - The demonstration and benchmark focus on red-cell dispatch. Clinical validation and component-specific handling for other products remain outstanding.
 - SMS, USSD, a complete offline client and automatic rerouting after acceptance remain future work.
-- The frontend is integrated separately by the team. The submission links below need the final recording, deck and deployed interface.
+- The coordinator Dispatch Planning interface and core operational workflows are live on Vercel. The submission links below still need the final recording and slide deck.
 
 ### Coordinator planning
 
@@ -52,7 +52,7 @@ A platform coordinator can read pending requests with `GET /api/v1/dispatch-plan
 | --- | --- |
 | Demo video, at most 3 minutes | Team recording link pending |
 | Pitch deck, at most 8 slides | Team slides link pending |
-| Hosted frontend | Team to add the interface URL |
+| Hosted frontend | [HemoGrid Web App](https://hemogrid-eight.vercel.app) |
 | Hosted backend | [Swagger UI](https://hemo-grid-backend.onrender.com/swagger-ui.html) · [Health](https://hemo-grid-backend.onrender.com/actuator/health) |
 | Local interactive API | [Swagger UI](http://localhost:8080/swagger-ui.html) |
 | Local readiness probe | [Readiness](http://localhost:8080/actuator/health/readiness) |
@@ -255,10 +255,10 @@ The API uses compact JSON, HTTP compression and REST calls suitable for a client
 
 ## Known limits and next steps
 
-1. Deploy the verified backend revision and connect the coordinator preview in the frontend.
+1. Deploy the verified backend revision and check the coordinator preview and staff approval flow in the hosted frontend.
 2. Publish the three-minute video, the deck and the deployed interface links above. Demonstrate both staff roles and a blocked or changed proposal.
 3. Validate the simplified compatibility and temperature rules with the blood-service expert. Extend unit-level traceability and component-specific handling before clinical use.
 4. Calibrate journey estimates and stock freshness, then evaluate an agreed dispatch policy against a nearest eligible baseline using historical stock and observed transfers.
-5. Add explicit decision audit events, live telemetry, SMS and offline synchronization as the workflow matures.
+5. Expand explicit decision audit events, live telemetry, SMS and offline synchronization as the workflow matures.
 
 The submission follows the [technical phase brief](https://docs.google.com/document/d/1vVODvnIPy1TnPHBqHeBQ32WBEY1cgH4nQiGdGErH6Fc/view?tab=t.0). Final presentation details and team roster changes should be coordinated with the organizers.
