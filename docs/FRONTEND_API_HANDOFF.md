@@ -1,435 +1,87 @@
-# HemoGrid Frontend API Handoff
+# HemoGrid frontend API handoff
 
-The optional coordinator planning flow is documented in [Dispatch planning API](DISPATCH_PLANNING.md). It adds a pending-request list and a batch-preview endpoint, then uses the existing hospital selection and bank acceptance actions.
+This document describes the current Java controllers and outbound DTOs. Check the deployed OpenAPI document before frontend integration. The application is a synthetic demonstration, not a validated clinical decision system.
 
-This is the frontend-facing contract for the current backend milestone. Keep this file open while building the VS Code frontend.
+## Environments and smoke verification
 
-## Backend URLs
+- Local API: `http://localhost:8080`
+- Deployed API: `https://hemo-grid-backend.onrender.com`
+- Swagger: `/swagger-ui.html`; OpenAPI: `/v3/api-docs`
+- Liveness: `/actuator/health`; readiness: `/actuator/health/readiness`
 
-Local API:
+Run the non-mutating [smoke test](../scripts/smoke_deployed_backend.py) from a network-connected machine with `python3 scripts/smoke_deployed_backend.py`. Override with `HEMOGRID_API_BASE`. Set `HEMOGRID_SMOKE_EMAIL` and `HEMOGRID_SMOKE_PASSWORD` only for synthetic demo credentials to additionally verify login and authenticated reads. This script never changes requests or stock. Passing repository CI is **not** proof of a successful hosted deployment.
 
-```text
-http://localhost:8080
-```
+## Authentication and roles
 
-Swagger UI:
+`POST /api/v1/auth/login` with `{"email":"...","password":"..."}` returns `accessToken`, `tokenType`, `expiresIn` (seconds), and `user`. The user has `id`, `fullName`, `email`, `role` and `organization` (nullable), whose summary has `id`, `name` and `type`. Use `Authorization: Bearer <accessToken>` for protected endpoints. `GET /api/v1/auth/me` returns the current user, and `GET /api/v1/organizations/me` returns an organization-bound user's facility.
 
-```text
-http://localhost:8080/swagger-ui.html
-```
+Synthetic demonstration accounts: hospital `hospital.demo@hemogrid.local` / `HospitalDemo123!`; Nairobi bank `bank.demo@hemogrid.local` / `BankDemo123!`; Embu bank `embu.bank@hemogrid.local` / `BankDemo123!`; coordinator `admin.demo@hemogrid.local` / `AdminDemo123!`. Other bank accounts are listed in the root README. Demo passwords must never be used with real-world patient or facility data.
 
-OpenAPI JSON:
+## Enums and requests
 
-```text
-http://localhost:8080/v3/api-docs
-```
+- Blood groups: `A_POSITIVE`, `A_NEGATIVE`, `B_POSITIVE`, `B_NEGATIVE`, `AB_POSITIVE`, `AB_NEGATIVE`, `O_POSITIVE`, `O_NEGATIVE`.
+- Components: `WHOLE_BLOOD`, `RED_CELLS`, `PLATELETS`, `PLASMA`. The validated hackathon evaluation concerns red cells.
+- Urgency: `ROUTINE`, `URGENT`, `CRITICAL`.
+- Status: `REQUESTED`, `ACCEPTED`, `PREPARING`, `IN_TRANSIT`, `DELIVERED`, `DECLINED`, `CANCELLED`, `EXPIRED`.
 
-Health check:
+### Hospital officer endpoints
 
-```text
-GET http://localhost:8080/actuator/health
-```
+| Method | Path | Function |
+| --- | --- | --- |
+| GET | `/api/v1/blood-requests` | List own hospital's requests |
+| POST | `/api/v1/blood-requests` | Create a request, HTTP 201 |
+| GET | `/api/v1/blood-requests/{requestId}` | Read an owned request |
+| GET | `/api/v1/blood-requests/{requestId}/candidates` | Get ranked candidate evidence |
+| POST | `/api/v1/blood-requests/{requestId}/select-provider` | Select/change a provider while REQUESTED |
+| POST | `/api/v1/blood-requests/{requestId}/cancel` | Cancel REQUESTED, ACCEPTED, or PREPARING request |
 
-## Demo Users
+Create request example (synthetic): 
 
-Hospital:
+~~~json
+{"bloodGroup":"O_NEGATIVE","component":"RED_CELLS","unitsRequired":3,"urgency":"CRITICAL","unknownPatientBloodGroup":false,"clinicalReference":"SYNTHETIC-DEMO-001","notes":"Demonstration only"}
+~~~
 
-```text
-email: hospital.demo@hemogrid.local
-password: HospitalDemo123!
-```
+`unitsRequired` must be 1–20. Null/unspecified patient group has a separate `unknownPatientBloodGroup` pathway. Use `{"providerOrganizationId":"<candidate-UUID>"}` to select. Do not treat displayed candidate stock as a guarantee; selection and acceptance recheck inventory.
 
-Blood bank:
+`BloodRequestResponse` fields: `id`; `requester` and `provider` (nullable objects with `id`, `name`, `type`); `bloodGroup`; `allocatedBloodGroup`; `component`; `unitsRequired`; `urgency`; `status`; `unknownPatientBloodGroup`; `matchType`; `estimatedTransitHours`; `coldChainVerified`; `clinicalReference`; `notes`; `requestedAt`; `acceptedAt`; `preparingAt`; `dispatchedAt`; `deliveredAt`; `cancelledAt`; `updatedAt`.
 
-```text
-email: bank.demo@hemogrid.local
-password: BankDemo123!
-```
+Candidate response is `{"requestId":"<UUID>","candidates":[...]}`. Each candidate has `organizationId`, `organizationName`, `bloodGroup`, `offeredBloodGroup`, `component`, `matchType`, `unitsFree`, `distanceKm`, `estimatedTransitHours`, `coldChainVerified`, `fridgeTempCelsius`, `quarantinedUnitsExcluded`, `conservationRuleApplied`, `recommendationReasons` (string array), `canFullyFulfil` and `rank`. Distances/transport estimates can be null. Explain that these are synthetic estimates and recorded safety checks, not confirmed clinical suitability or measured ETAs.
 
-Platform admin:
+### Blood-bank officer endpoints
 
-```text
-email: admin.demo@hemogrid.local
-password: AdminDemo123!
-```
+| Method | Path | Function |
+| --- | --- | --- |
+| GET | `/api/v1/provider/requests` | Assigned requests only |
+| GET | `/api/v1/provider/requests/{requestId}` | Assigned request |
+| POST | `/api/v1/provider/requests/{requestId}/accept` | Confirm and reserve matching stock |
+| POST | `/api/v1/provider/requests/{requestId}/decline` | Decline a pending request |
+| POST | `/api/v1/provider/requests/{requestId}/status` | `{"status":"PREPARING"}` then IN_TRANSIT then DELIVERED |
+| GET | `/api/v1/inventory` | Own bank's inventory |
+| PATCH | `/api/v1/inventory/{inventoryId}/units` | `{"unitsAvailable":9}` |
+| PUT | `/api/v1/inventory/{inventoryId}` | Same update payload |
 
-## Auth
+Inventory fields: `id`, `bloodGroup`, `component`, `unitsAvailable`, `unitsReserved`, `unitsFree`, `quarantinedTempExcursionUnits`, `fridgeTempCelsius`, `coldChainStatus`, `expiringWithin7DaysUnits`, `dispatchableUnitsFree`, `coldChainVerified`, `updatedAt`. Display `dispatchableUnitsFree` as usable stock, not merely `unitsFree`. Delivery consumes the reserved units. Invalid transition, insufficient stock and cold-chain hold produce HTTP 409; refresh and reconcile the request rather than retrying automatically.
 
-Login:
+### Platform coordinator dispatch planning
 
-```http
-POST /api/v1/auth/login
-Content-Type: application/json
-```
+Only a `PLATFORM_ADMIN` can call `GET /api/v1/dispatch-plans/requests` (up to 100 pending critical red-cell requests), or `POST /api/v1/dispatch-plans/preview` with:
 
-Request:
+~~~json
+{"requestIds":["<request-UUID-1>","<request-UUID-2>"],"staffApproved":true}
+~~~
 
-```json
-{
-  "email": "hospital.demo@hemogrid.local",
-  "password": "HospitalDemo123!"
-}
-```
+The coordinator must actually obtain staff approval before asserting this Boolean; it is not a signed approval record. Choose 2–5 distinct requests. The preview is advisory and does **not** reserve stock. Hospital approval/selection and the assigned bank's acceptance remain separate actions.
 
-Response:
+The `DispatchPlanResponse` fields are `generatedAt`, `status`, `totalEstimatedTransitHours` (nullable), `visitedNodes`, `nearestEligibleBaseline`, `proposals` and `notes`. Status is `OPTIMAL`, `FEASIBLE`, `INFEASIBLE` or `LIMIT_REACHED`. Baseline plan has `status`, `assignments` (each `orderId`/`stockId`/`transitHours`), `totalTransitHours`, `visitedNodes`. Complete proposals include `requestId`, `requesterOrganizationId`, `providerOrganizationId`, `providerName`, `offeredBloodGroup`, `inventoryId`, `inventoryVersion`, `unitsRequired`, `dispatchableUnitsAtPlanning`, `unitsRemainingAfterWholePlan`, `estimatedTransitHours`, `recordedFridgeTempCelsius`, `inventoryUpdatedAt` and `rationale`. Never render an incomplete result as an approved allocation. See [dispatch planning details](DISPATCH_PLANNING.md).
 
-```json
-{
-  "accessToken": "jwt-token",
-  "tokenType": "Bearer",
-  "expiresIn": 28800,
-  "user": {
-    "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    "fullName": "Demo Hospital User",
-    "email": "hospital.demo@hemogrid.local",
-    "role": "HOSPITAL_STAFF",
-    "organization": {
-      "id": "11111111-1111-1111-1111-111111111111",
-      "name": "Central Care Hospital",
-      "type": "HOSPITAL"
-    }
-  }
-}
-```
+## Errors and frontend behavior
 
-Use this header for every protected endpoint:
+Handled errors have `timestamp`, `status`, `error`, `code`, `message`, `path` and `fieldErrors` (each `field`/`message`). Validation uses `VALIDATION_FAILED`, HTTP 400. Handle 401 by signing in, 403 as insufficient permission, 404 as missing/inaccessible, 409 as conflict and 5xx as backend unavailable. `COLD_CHAIN_HOLD` is a specific 409 condition.
 
-```http
-Authorization: Bearer <accessToken>
-```
+There is no WebSocket stream. Poll the hospital request detail and the blood-bank assignment list every 3–5 seconds while the page is active, with backoff on failures. Disable action buttons while requests are in flight, and refresh authoritative state after mutation. No automatic retries of mutations.
 
-Current user:
-
-```http
-GET /api/v1/auth/me
-Authorization: Bearer <accessToken>
-```
-
-Current user's organization:
-
-```http
-GET /api/v1/organizations/me
-Authorization: Bearer <accessToken>
-```
-
-## Enums
-
-Blood groups:
-
-```text
-A_POSITIVE
-A_NEGATIVE
-B_POSITIVE
-B_NEGATIVE
-AB_POSITIVE
-AB_NEGATIVE
-O_POSITIVE
-O_NEGATIVE
-```
-
-Blood components:
-
-```text
-WHOLE_BLOOD
-RED_CELLS
-PLATELETS
-PLASMA
-```
-
-Request urgency:
-
-```text
-ROUTINE
-URGENT
-CRITICAL
-```
-
-Request status:
-
-```text
-REQUESTED
-ACCEPTED
-PREPARING
-IN_TRANSIT
-DELIVERED
-DECLINED
-CANCELLED
-EXPIRED
-```
-
-Provider status update targets:
-
-```text
-PREPARING
-IN_TRANSIT
-DELIVERED
-```
-
-## Hospital Flow
-
-Create a blood request:
-
-```http
-POST /api/v1/blood-requests
-Authorization: Bearer <hospitalToken>
-Content-Type: application/json
-```
-
-Request:
-
-```json
-{
-  "bloodGroup": "O_NEGATIVE",
-  "component": "RED_CELLS",
-  "unitsRequired": 3,
-  "urgency": "CRITICAL",
-  "clinicalReference": "ER-2026-0821-001",
-  "notes": "Emergency request"
-}
-```
-
-Response status: `201 Created`
-
-Response shape:
-
-```json
-{
-  "id": "generated-request-id",
-  "requester": {
-    "id": "11111111-1111-1111-1111-111111111111",
-    "name": "Central Care Hospital",
-    "type": "HOSPITAL"
-  },
-  "provider": null,
-  "bloodGroup": "O_NEGATIVE",
-  "component": "RED_CELLS",
-  "unitsRequired": 3,
-  "urgency": "CRITICAL",
-  "status": "REQUESTED",
-  "clinicalReference": "ER-2026-0821-001",
-  "notes": "Emergency request",
-  "requestedAt": "2026-08-21T10:00:00Z",
-  "acceptedAt": null,
-  "preparingAt": null,
-  "dispatchedAt": null,
-  "deliveredAt": null,
-  "cancelledAt": null,
-  "updatedAt": "2026-08-21T10:00:00Z"
-}
-```
-
-List hospital request history:
-
-```http
-GET /api/v1/blood-requests
-Authorization: Bearer <hospitalToken>
-```
-
-Get one request:
-
-```http
-GET /api/v1/blood-requests/{requestId}
-Authorization: Bearer <hospitalToken>
-```
-
-Get ranked candidates:
-
-```http
-GET /api/v1/blood-requests/{requestId}/candidates
-Authorization: Bearer <hospitalToken>
-```
-
-Response shape:
-
-```json
-{
-  "requestId": "generated-request-id",
-  "candidates": [
-    {
-      "organizationId": "22222222-2222-2222-2222-222222222222",
-      "organizationName": "Maitama Blood Centre",
-      "bloodGroup": "O_NEGATIVE",
-      "component": "RED_CELLS",
-      "unitsFree": 5,
-      "distanceKm": 2.83,
-      "canFullyFulfil": true,
-      "rank": 1
-    }
-  ]
-}
-```
-
-Select a provider:
-
-```http
-POST /api/v1/blood-requests/{requestId}/select-provider
-Authorization: Bearer <hospitalToken>
-Content-Type: application/json
-```
-
-Request:
-
-```json
-{
-  "providerOrganizationId": "22222222-2222-2222-2222-222222222222"
-}
-```
-
-Cancel a request:
-
-```http
-POST /api/v1/blood-requests/{requestId}/cancel
-Authorization: Bearer <hospitalToken>
-```
-
-Cancellation is allowed while the request is `REQUESTED`, `ACCEPTED`, or `PREPARING`. If inventory was reserved, cancellation releases it.
-
-## Blood Bank Flow
-
-List requests assigned to the authenticated blood bank:
-
-```http
-GET /api/v1/provider/requests
-Authorization: Bearer <bankToken>
-```
-
-Get one assigned request:
-
-```http
-GET /api/v1/provider/requests/{requestId}
-Authorization: Bearer <bankToken>
-```
-
-Accept and reserve inventory:
-
-```http
-POST /api/v1/provider/requests/{requestId}/accept
-Authorization: Bearer <bankToken>
-```
-
-Decline:
-
-```http
-POST /api/v1/provider/requests/{requestId}/decline
-Authorization: Bearer <bankToken>
-```
-
-Progress status:
-
-```http
-POST /api/v1/provider/requests/{requestId}/status
-Authorization: Bearer <bankToken>
-Content-Type: application/json
-```
-
-Request:
-
-```json
-{
-  "status": "PREPARING"
-}
-```
-
-Valid progression:
-
-```text
-ACCEPTED -> PREPARING -> IN_TRANSIT -> DELIVERED
-```
-
-Delivery consumes reserved inventory.
-
-## Inventory
-
-List inventory for the authenticated blood bank:
-
-```http
-GET /api/v1/inventory
-Authorization: Bearer <bankToken>
-```
-
-Response item shape:
-
-```json
-{
-  "id": "30000000-0000-0000-0000-000000000008",
-  "bloodGroup": "O_NEGATIVE",
-  "component": "RED_CELLS",
-  "unitsAvailable": 5,
-  "unitsReserved": 0,
-  "unitsFree": 5
-}
-```
-
-Update available units:
-
-```http
-PATCH /api/v1/inventory/{inventoryId}/units
-Authorization: Bearer <bankToken>
-Content-Type: application/json
-```
-
-Request:
-
-```json
-{
-  "unitsAvailable": 9
-}
-```
-
-`PUT /api/v1/inventory/{inventoryId}` accepts the same body.
-
-## Error Shape
-
-All handled errors use this shape:
-
-```json
-{
-  "timestamp": "2026-08-21T10:00:00Z",
-  "status": 409,
-  "error": "CONFLICT",
-  "message": "Request cannot be cancelled in its current status."
-}
-```
-
-Validation errors currently return a generic message:
-
-```json
-{
-  "timestamp": "2026-08-21T10:00:00Z",
-  "status": 400,
-  "error": "BAD_REQUEST",
-  "message": "Request validation failed."
-}
-```
-
-## Frontend Polling Guidance
-
-Realtime WebSocket is not implemented yet. For the first frontend build, use polling:
-
-Hospital request detail page:
-
-```text
-GET /api/v1/blood-requests/{requestId}
-```
-
-Blood bank dashboard:
-
-```text
-GET /api/v1/provider/requests
-```
-
-Polling every 3 to 5 seconds is enough for the hackathon demo.
-
-## Demo Happy Path
-
-1. Login as the hospital user.
-2. Create an `O_NEGATIVE / RED_CELLS / 3 units / CRITICAL` request.
-3. Read candidates from `/api/v1/blood-requests/{requestId}/candidates`.
-4. Select `Maitama Blood Centre` or another full-match candidate.
-5. Login as the blood-bank user.
-6. Load assigned provider requests.
-7. Accept the selected request.
-8. Move status to `PREPARING`.
-9. Move status to `IN_TRANSIT`.
-10. Move status to `DELIVERED`.
-11. Confirm the hospital request status and blood-bank inventory changed.
+## Demo progression
+
+Coordinator previews two staff-approved pending requests and explains shared stock versus the nearest-eligible baseline. A hospital officer selects an eligible supplier; that bank accepts, showing its reservation. The bank progresses PREPARING → IN_TRANSIT → DELIVERED; the hospital sees the same lifecycle. Demonstrate a stock or quarantine conflict using synthetic demo conditions only. Never claim clinical validation, live inventory ingestion, calibrated transport time or actual patient outcomes.
+
+The Java DTOs/controllers and generated OpenAPI are authoritative when they differ from examples in this document.

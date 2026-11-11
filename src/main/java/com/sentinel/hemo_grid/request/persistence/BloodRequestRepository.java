@@ -35,6 +35,17 @@ public interface BloodRequestRepository extends JpaRepository<BloodRequest, UUID
 			""")
 	Optional<BloodRequest> findByIdAndRequesterOrganizationId(UUID id, UUID organizationId);
 
+	/**
+	 * Serialize hospital-side selection/cancellation with bank acceptance.
+	 * Every mutating request workflow locks the request row before inventory.
+	 */
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("""
+			select request from BloodRequest request
+			where request.id = :id and request.requesterOrganization.id = :organizationId
+			""")
+	Optional<BloodRequest> lockByIdAndRequesterOrganizationId(UUID id, UUID organizationId);
+
 	@Query("""
 			select request from BloodRequest request
 			join fetch request.requesterOrganization
