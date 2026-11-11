@@ -131,7 +131,7 @@ Tests cover the HTTP workflow, authorization, matching, cancellations, repeated 
 | Repeatable benchmark output against the unchanged V7 seed | Passed |
 | Planner checks against exhaustive enumeration on 2,000 cases, plus changed stock and concurrent calls | Passed |
 | Controlled batch comparison across 3,321 scenario batches | Passed |
-| Full Spring and PostgreSQL integration suite | Passed (57 tests against PostgreSQL 17, 0 failures) |
+| Full Spring and PostgreSQL regression suite | Passed: 57 tests, zero failures, errors or skips. [GitHub Actions run](https://github.com/Team-Relay/hemo-grid-backend/actions/runs/42928089586) |
 
 ## Architecture
 
@@ -241,7 +241,7 @@ The API uses compact JSON, HTTP compression and REST calls suitable for a client
 | --- | --- |
 | Google Antigravity, Gemini and Claude | Architecture support, JPA query work and integration-test drafting |
 | GitHub Copilot | Class scaffolding and boilerplate |
-| OpenAI ChatGPT and Codex | Review against the technical brief, README revision, quarantine corrections, ETA explanations, regression-test drafting and the reproducible policy comparison |
+| OpenAI ChatGPT and Codex | Review against the technical brief, README revision, joint dispatch planning, quarantine corrections, ETA explanations, regression tests, reproducible comparisons and GitHub Actions verification |
 
 ## Team
 
@@ -250,13 +250,12 @@ The API uses compact JSON, HTTP compression and REST calls suitable for a client
 | Name | Country | Role | Friday presentation | Email |
 | --- | --- | --- | --- | --- |
 | Grold Otieno | Kenya | ML and AI research | In person in Nairobi, as recorded by the team | [groldotieno97@gmail.com](mailto:groldotieno97@gmail.com) |
-| Chamamme Nnyabe | Ghana | Team member, specific role to confirm | To confirm | [solomonchamamme@gmail.com](mailto:solomonchamamme@gmail.com) |
 | Dennis Ikechukwu Okwuchukwu | Nigeria | Team lead, full-stack and systems engineering | Online | [okwuchukwudennis001@gmail.com](mailto:okwuchukwudennis001@gmail.com) |
 | Mubarak Zubair | Nigeria | Product management and clinical data analysis | Online | [mubarak@aluvity.com](mailto:mubarak@aluvity.com) |
 
 ## Known limits and next steps
 
-1. Complete the full Spring/PostgreSQL test run and inspect the quarantine regressions before deployment.
+1. Deploy the verified backend revision and check the coordinator preview and staff approval flow in the hosted frontend.
 2. Publish the three-minute video, the deck and the deployed interface links above. Demonstrate both staff roles and a blocked or changed proposal.
 3. Validate the simplified compatibility and temperature rules with the blood-service expert. Extend unit-level traceability and component-specific handling before clinical use.
 4. Calibrate journey estimates and stock freshness, then evaluate an agreed dispatch policy against a nearest eligible baseline using historical stock and observed transfers.
