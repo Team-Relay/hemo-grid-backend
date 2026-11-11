@@ -18,6 +18,9 @@ import com.sentinel.hemo_grid.planning.domain.BatchDispatchPlanner.Status;
 import com.sentinel.hemo_grid.request.api.CreateBloodRequestRequest;
 import com.sentinel.hemo_grid.request.api.SelectProviderRequest;
 import com.sentinel.hemo_grid.request.application.BloodRequestService;
+import com.sentinel.hemo_grid.request.application.ProviderRequestService;
+import com.sentinel.hemo_grid.request.api.UpdateRequestStatusRequest;
+import com.sentinel.hemo_grid.request.domain.RequestStatus;
 import com.sentinel.hemo_grid.request.domain.RequestUrgency;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +42,7 @@ class DispatchPlanServiceIntegrationTests {
 	@Autowired private JwtDecoder jwtDecoder;
 	@Autowired private BloodRequestService requests;
 	@Autowired private DispatchPlanService planning;
+	@Autowired private ProviderRequestService providers;
 	@Autowired private BloodInventoryRepository inventory;
 	@Autowired private JdbcTemplate jdbc;
 
@@ -66,6 +70,49 @@ class DispatchPlanServiceIntegrationTests {
 			var selected = requests.selectProvider(hospital, proposal.requestId(), new SelectProviderRequest(proposal.providerOrganizationId()));
 			assertThat(selected.allocatedBloodGroup()).isEqualTo(proposal.offeredBloodGroup());
 		}
+	}
+
+	@Test
+	void infeasibleJointPlanStillAllowsAuditedIndividualRequestToDelivery() {
+		Jwt hospital = login("hospital.demo@hemogrid.local", "HospitalDemo123!");
+		Jwt bank = login("bank.demo@hemogrid.local", "BankDemo123!");
+		var first = requests.createRequest(hospital, new CreateBloodRequestRequest(
+				BloodGroup.O_NEGATIVE, BloodComponent.RED_CELLS, 3, RequestUrgency.CRITICAL,
+				"FALLBACK-A", "Synthetic manual fallback test"));
+		var competing = requests.createRequest(hospital, new CreateBloodRequestRequest(
+				BloodGroup.O_NEGATIVE, BloodComponent.RED_CELLS, 3, RequestUrgency.CRITICAL,
+				"FALLBACK-B", "Synthetic competition for same stock"));
+
+		var joint = planning.preview(admin(), new CreateDispatchPlanRequest(
+				List.of(first.id(), competing.id()), true));
+		assertThat(joint.status()).isEqualTo(Status.INFEASIBLE);
+		assertThat(joint.proposals()).isEmpty();
+		assertThat(jdbc.queryForObject("select sum(units_reserved) from blood_inventory", Integer.class)).isZero();
+
+		// A failed batch must not prohibit an individual hospital from selecting
+		// a currently eligible supplier under the ordinary staff approval workflow.
+		var selected = requests.selectProvider(hospital, first.id(), new SelectProviderRequest(NAIROBI));
+		assertThat(selected.status()).isEqualTo(RequestStatus.REQUESTED);
+		assertThat(selected.provider().id()).isEqualTo(NAIROBI);
+
+		var accepted = providers.accept(bank, first.id());
+		assertThat(accepted.status()).isEqualTo(RequestStatus.ACCEPTED);
+		var stock = inventory.findByOrganizationIdAndBloodGroupAndComponent(
+				NAIROBI, BloodGroup.O_NEGATIVE, BloodComponent.RED_CELLS).orElseThrow();
+		assertThat(stock.getUnitsReserved()).isEqualTo(3);
+
+		providers.updateStatus(bank, first.id(), new UpdateRequestStatusRequest(RequestStatus.PREPARING));
+		providers.updateStatus(bank, first.id(), new UpdateRequestStatusRequest(RequestStatus.IN_TRANSIT));
+		var delivered = providers.updateStatus(bank, first.id(), new UpdateRequestStatusRequest(RequestStatus.DELIVERED));
+
+		assertThat(delivered.status()).isEqualTo(RequestStatus.DELIVERED);
+		assertThat(delivered.acceptedAt()).isNotNull();
+		assertThat(delivered.deliveredAt()).isNotNull();
+		assertThat(stock.getUnitsAvailable()).isZero();
+		assertThat(stock.getUnitsReserved()).isZero();
+		assertThat(requests.getRequest(hospital, competing.id()).status()).isEqualTo(RequestStatus.REQUESTED);
+		// The other request never receives a fabricated allocation.
+		assertThat(requests.getRequest(hospital, competing.id()).provider()).isNull();
 	}
 
 	@Test
