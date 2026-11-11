@@ -1,6 +1,12 @@
 # Team Relay: HemoGrid emergency blood dispatch
 
-Terumo BCT Africa Hackathon 2026 · Challenge area: Emergency request and dispatch
+> **The closest blood bank is not always the right one.**
+
+**Terumo BCT Africa Hackathon 2026 · Emergency request and dispatch**
+
+**[Launch the live app](https://hemogrid-eight.vercel.app/login)** · **[Judges' two-minute project guide](https://github.com/Team-Relay/hemo-grid-frontend/blob/main/docs/JUDGE_START_HERE.md)** · [Frontend source and primary README](https://github.com/Team-Relay/hemo-grid-frontend) · [Hosted transaction proof](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072)
+
+**This is the backend and evaluation repository**, not a second product. The frontend handles staff workflows; this service owns matching, quarantine checks, shared-stock planning, authorization, reservations and transactional state. Together they form **one HemoGrid submission**.
 
 HemoGrid helps a hospital blood-bank officer turn an urgent request into a supplier proposal, a staff decision and a reserved order. It brings recorded stock, quarantine status, configured blood-group rules and corridor travel estimates into one workflow. The supplying bank confirms the request before stock is reserved. A coordinator can also preview a complete supplier plan for two to five staff-approved critical red-cell requests competing for the same inventory.
 
@@ -12,7 +18,7 @@ The imported synthetic network contains 47 facilities, 2,162 corridor routes, 22
 
 ## What we built
 
-One workflow connects two operational roles.
+One deployed application connects **hospital staff, blood-bank staff and a network coordinator**. The coordinator's joint plan is advisory and cannot accept orders or reserve stock on behalf of either institution.
 
 1. A hospital officer creates a request with the component, group, quantity and urgency.
 2. HemoGrid ranks provider candidates and returns stock, quarantine and route evidence for each proposal.
@@ -48,6 +54,7 @@ A platform coordinator can read pending requests with `GET /api/v1/dispatch-plan
 
 | Item | Location or status |
 | --- | --- |
+| Primary project guide | [Judges' guide and demo walkthrough](https://github.com/Team-Relay/hemo-grid-frontend/blob/main/docs/JUDGE_START_HERE.md) |
 | Demo video, at most 3 minutes | Team recording link pending |
 | Pitch deck, at most 8 slides | Team slides link pending |
 | Hosted frontend | [HemoGrid Web App](https://hemogrid-eight.vercel.app) |
@@ -55,6 +62,8 @@ A platform coordinator can read pending requests with `GET /api/v1/dispatch-plan
 | Local interactive API | [Swagger UI](http://localhost:8080/swagger-ui.html) |
 | Local readiness probe | [Readiness](http://localhost:8080/actuator/health/readiness) |
 | API contract and frontend handoff | [Frontend API handoff](docs/FRONTEND_API_HANDOFF.md) |
+
+**The complete hosted synthetic transaction passed:** one A-positive red-cell request was created, selected, accepted, reserved, prepared, marked in transit and delivered. Stock reconciled from **10 available to 9**, with no outstanding reservation. [Review the recorded run](https://github.com/Team-Relay/hemo-grid-frontend/actions/runs/42952475072). This was a software test, not a physical shipment.
 
 The demo should follow staff-approved requests through a coordinator preview, hospital provider selection and bank reservation. Show the nearest eligible comparison, the shared stock evidence and a changed recommendation or quarantine hold.
 
@@ -129,7 +138,7 @@ Tests cover the HTTP workflow, authorization, matching, cancellations, repeated 
 | Repeatable benchmark output against the unchanged V7 seed | Passed |
 | Planner checks against exhaustive enumeration on 2,000 cases, plus changed stock and concurrent calls | Passed |
 | Controlled batch comparison across 3,321 scenario batches | Passed |
-| Full Spring and PostgreSQL regression suite | Passed: 57 tests, zero failures, errors or skips. [GitHub Actions run](https://github.com/Team-Relay/hemo-grid-backend/actions/runs/42928089586) |
+| Full Spring/PostgreSQL regression suite, including cross-role concurrency and readiness checks | **Passed on `main`.** [Latest backend verification](https://github.com/Team-Relay/hemo-grid-backend/actions/runs/42944446515) |
 
 ## Architecture
 
@@ -259,7 +268,7 @@ AI-assisted changes are checked through executable tests and reproducible compar
 
 ## Known limits and next steps
 
-1. Deploy the verified backend revision and check the coordinator preview and staff approval flow in the hosted frontend.
+1. The verified API revision is deployed; continue monitoring the hosted health/readiness probes and role-scoped demo flows before presenting.
 2. Publish the three-minute video, the deck and the deployed interface links above. Demonstrate both staff roles and a blocked or changed proposal.
 3. Validate the simplified compatibility and temperature rules with the blood-service expert. Extend unit-level traceability and component-specific handling before clinical use.
 4. Calibrate journey estimates and stock freshness, then evaluate an agreed dispatch policy against a nearest eligible baseline using historical stock and observed transfers.
