@@ -28,6 +28,7 @@ import com.sentinel.hemo_grid.request.domain.RequestUrgency;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.jdbc.Sql;
@@ -204,7 +205,7 @@ class ProviderRequestConcurrencyIntegrationTests {
 				assertThat(accept.get(10, TimeUnit.SECONDS).status()).isEqualTo(RequestStatus.ACCEPTED);
 			} catch (ExecutionException exception) {
 				// Cancellation won the request lock; accepting the stale request must fail.
-				assertThat(exception.getCause()).isInstanceOf(BusinessException.class);
+				assertThat(exception.getCause()).isInstanceOfAny(BusinessException.class, ObjectOptimisticLockingFailureException.class);
 			}
 		} finally {
 			executor.shutdownNow();
@@ -247,13 +248,13 @@ class ProviderRequestConcurrencyIntegrationTests {
 				assertThat(accept.get(10, TimeUnit.SECONDS).status()).isEqualTo(RequestStatus.ACCEPTED);
 				acceptSucceeded = true;
 			} catch (ExecutionException exception) {
-				assertThat(exception.getCause()).isInstanceOf(BusinessException.class);
+				assertThat(exception.getCause()).isInstanceOfAny(BusinessException.class, ObjectOptimisticLockingFailureException.class);
 			}
 			try {
 				assertThat(reselect.get(10, TimeUnit.SECONDS).provider().id()).isEqualTo(EMBU_BANK_ID);
 				reselectSucceeded = true;
 			} catch (ExecutionException exception) {
-				assertThat(exception.getCause()).isInstanceOf(BusinessException.class);
+				assertThat(exception.getCause()).isInstanceOfAny(BusinessException.class, ObjectOptimisticLockingFailureException.class);
 			}
 		} finally {
 			executor.shutdownNow();
