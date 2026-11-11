@@ -230,7 +230,7 @@ The coordinator acknowledges staff approval of every request included in a batch
 
 ### What happens if the AI is wrong or offline
 
-Staff can refresh a batch preview after stock or quarantine changes and review a revised whole-batch proposal. Staff can also choose another eligible returned candidate. Selection rechecks current inventory, and the supplying bank confirms again under a row lock. The deterministic feature has no external model service or inference credentials. Network or server outages require the facility's existing phone coordination process. A complete offline or SMS workflow remains future work.
+The planner is optional for the individual dispatch workflow. An infeasible or search-limited batch generates no allocations. Staff can use the existing hospital-owned candidate selection and blood-bank-owned acceptance endpoints independently. Current stock, group and cold-chain rules remain enforced by the backend; inventory is reserved only when the bank accepts, and request milestones record the progression to delivery. The integration suite tests an **infeasible joint batch followed by a successful individual request, bank reservation and delivery**, while the competing request remains unassigned. The frontend also tests a simulated HTTP 503 preview failure that exposes the staff-controlled handoff. If the actual API or connectivity is down, no live stock verification or digital fulfilment is possible; the fallback is telephone/manual coordination, not an implemented offline system. The deterministic planner itself has no external inference dependency. SMS and offline synchronization remain future work.
 
 ## Data
 
