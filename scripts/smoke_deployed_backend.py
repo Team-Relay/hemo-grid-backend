@@ -20,6 +20,8 @@ def request(method, path, body=None, bearer=None, origin=None):
         headers["Authorization"] = "Bearer " + bearer
     if origin:
         headers["Origin"] = origin
+        headers["Access-Control-Request-Method"] = "GET"
+        headers["Access-Control-Request-Headers"] = "authorization"
     data = json.dumps(body).encode("utf-8") if body is not None else None
     req = urllib.request.Request(url, headers=headers, data=data, method=method)
     try:
