@@ -74,4 +74,4 @@ The comparison uses the 1,072 known-group emergency red-cell request shapes in V
 
 Across sizes and scenarios, this produces 3,321 controlled comparisons. Tail requests that cannot form a full batch are omitted for that size. Scenario counts reuse the same request shapes. Transport values are synthetic estimates. The scenario study establishes allocation behavior under these assumptions.
 
-The Spring integration cases cover coordinator authorization, explicit approval, shared-stock proposals, preview side effects, stale quarantine and hospital ownership of approval actions. The full Spring/PostgreSQL run is pending because dependency downloads were blocked in the editing environment.
+The Spring integration cases cover coordinator authorization, explicit approval, shared-stock proposals, preview side effects, stale quarantine and hospital ownership of approval actions. The full Java 21/PostgreSQL 17 regression suite passed all 57 tests with no failures, errors or skips in [GitHub Actions](https://github.com/Team-Relay/hemo-grid-backend/actions/runs/42928089586). The same run reproduced both committed benchmark summaries from a clean checkout.
