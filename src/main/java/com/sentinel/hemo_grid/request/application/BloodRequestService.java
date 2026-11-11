@@ -101,7 +101,7 @@ public class BloodRequestService {
 
 	@Transactional
 	public BloodRequestResponse selectProvider(Jwt jwt, UUID requestId, SelectProviderRequest request) {
-		BloodRequest bloodRequest = requireOwnedRequest(jwt, requestId);
+		BloodRequest bloodRequest = requireOwnedRequestForUpdate(jwt, requestId);
 		if (bloodRequest.getStatus() != RequestStatus.REQUESTED) {
 			throw new BusinessException(
 					HttpStatus.CONFLICT,
@@ -155,7 +155,7 @@ public class BloodRequestService {
 
 	@Transactional
 	public BloodRequestResponse cancelRequest(Jwt jwt, UUID requestId) {
-		BloodRequest bloodRequest = requireOwnedRequest(jwt, requestId);
+		BloodRequest bloodRequest = requireOwnedRequestForUpdate(jwt, requestId);
 		if (bloodRequest.getStatus() != RequestStatus.REQUESTED
 				&& bloodRequest.getStatus() != RequestStatus.ACCEPTED
 				&& bloodRequest.getStatus() != RequestStatus.PREPARING) {
@@ -180,6 +180,16 @@ public class BloodRequestService {
 		}
 		bloodRequest.cancel();
 		return BloodRequestResponse.from(bloodRequest);
+	}
+
+	/**
+	 * Match provider acceptance's lock order: request first, then stock.
+	 * Prevents lost updates during cancellation or supplier changes.
+	 */
+	private BloodRequest requireOwnedRequestForUpdate(Jwt jwt, UUID requestId) {
+		AppUser user = authService.requireHospitalUser(jwt);
+		return requestRepository.lockByIdAndRequesterOrganizationId(requestId, user.getOrganization().getId())
+			.orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND, "Blood request not found."));
 	}
 
 	private BloodRequest requireOwnedRequest(Jwt jwt, UUID requestId) {
