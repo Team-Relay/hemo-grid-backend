@@ -13,6 +13,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import com.sentinel.hemo_grid.common.exception.BusinessException;
 import com.sentinel.hemo_grid.common.exception.ErrorCode;
 import com.sentinel.hemo_grid.planning.application.DispatchPlanService;
@@ -48,6 +49,7 @@ class ManualDispatchFallbackIntegrationTests {
   @Autowired private MockMvc mvc;
   @Autowired private ObjectMapper json;
   @Autowired private JdbcTemplate jdbc;
+  @Autowired private EntityManager entityManager;
 
   // Deliberate failure affects only the coordinator solver; it does NOT replace
   // real hospital provider selection, bank acceptance or stock validation.
@@ -157,6 +159,8 @@ class ManualDispatchFallbackIntegrationTests {
   }
 
   private int inventoryValue(String column) {
+    // Persist JPA reservation changes before inspecting the same test transaction via JDBC.
+    entityManager.flush();
     if (!column.equals("units_available") && !column.equals("units_reserved")) {
       throw new IllegalArgumentException("Unexpected inventory column");
     }
