@@ -250,7 +250,6 @@ The API uses compact JSON, HTTP compression and REST calls suitable for a client
 | Name | Country | Role | Friday presentation | Email |
 | --- | --- | --- | --- | --- |
 | Grold Otieno | Kenya | ML and AI research | In person in Nairobi, as recorded by the team | [groldotieno97@gmail.com](mailto:groldotieno97@gmail.com) |
-| Chamamme Nnyabe | Ghana | Team member, specific role to confirm | To confirm | [solomonchamamme@gmail.com](mailto:solomonchamamme@gmail.com) |
 | Dennis Ikechukwu Okwuchukwu | Nigeria | Team lead, full-stack and systems engineering | Online | [okwuchukwudennis001@gmail.com](mailto:okwuchukwudennis001@gmail.com) |
 | Mubarak Zubair | Nigeria | Product management and clinical data analysis | Online | [mubarak@aluvity.com](mailto:mubarak@aluvity.com) |
 
