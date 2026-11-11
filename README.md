@@ -237,11 +237,15 @@ The API uses compact JSON, HTTP compression and REST calls suitable for a client
 
 ## AI tools we used
 
-| Tool | Use recorded by the team |
+Team Relay is responsible for the problem definition, operational workflow, integration and final submission. We used AI development tools for implementation assistance, debugging, testing and documentation.
+
+| Tool | Development support |
 | --- | --- |
-| Google Antigravity, Gemini and Claude | Architecture support, JPA query work and integration-test drafting |
-| GitHub Copilot | Class scaffolding and boilerplate |
-| OpenAI ChatGPT and Codex | Review against the technical brief, README revision, joint dispatch planning, quarantine corrections, ETA explanations, regression tests, reproducible comparisons and GitHub Actions verification |
+| Google Antigravity, Gemini and Claude | Architecture exploration, JPA query suggestions and integration-test drafts |
+| GitHub Copilot | Class scaffolding and boilerplate completion |
+| OpenAI ChatGPT and Codex | Implementation and review of dispatch planning and cold-chain changes; regression tests, benchmark scripts, CI configuration and technical documentation |
+
+AI-assisted changes are checked through executable tests and reproducible comparisons. The [verification run](https://github.com/Team-Relay/hemo-grid-backend/actions/runs/42930682795) passed all 57 backend tests and the planner checks, including 2,000 comparisons against exhaustive enumeration. Team Relay remains accountable for explaining the implementation, design choices, evidence and limitations.
 
 ## Team
 
