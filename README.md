@@ -1,8 +1,6 @@
-# Team Relay · HemoGrid
+# Team Relay: HemoGrid emergency blood dispatch
 
-**Emergency blood dispatch with staff approval and inventory reservation.**
-
-Terumo BCT Africa Hackathon 2026 · Emergency request and dispatch
+Terumo BCT Africa Hackathon 2026 · Challenge area: Emergency request and dispatch
 
 HemoGrid helps a hospital blood-bank officer turn an urgent request into a supplier proposal, a staff decision and a reserved order. It brings recorded stock, quarantine status, configured blood-group rules and corridor travel estimates into one workflow. The supplying bank confirms the request before stock is reserved. A coordinator can also preview a complete supplier plan for two to five staff-approved critical red-cell requests competing for the same inventory.
 
@@ -34,7 +32,7 @@ One workflow connects two operational roles.
 - Request state transitions, cancellation, reservation accounting and timestamped milestones.
 - PostgreSQL schema and synthetic data through Flyway, Docker configuration, health probes and an OpenAPI interface.
 
-### What is mocked or unfinished
+### What is mocked or not finished
 
 - Temperature readings and routes come from synthetic seed data. Live sensor ingestion and live traffic are future integrations.
 - The current data model tracks aggregate stock by facility, blood group and component. Unit-level traceability, expiry decisions and laboratory crossmatch workflows require further work.
@@ -217,11 +215,11 @@ The command compiles the shared policies and writes `target/dispatch-benchmark/s
 
 Each candidate includes the offered group, available stock snapshot, ability to fill the order, recorded temperature, excluded quarantined units, estimated transit and `recommendationReasons`. ETA explanations distinguish a seeded corridor estimate from straight-line distance at an assumed 45 km/h. Historical error bounds are uncalibrated, and staff are told to confirm transport and additional preparation or approval delays. A missing estimate is explicitly reported as unavailable.
 
-### Who approves it
+### Who approves it (Accept / Change / Reject)
 
 The coordinator acknowledges staff approval of every request included in a batch. The hospital officer selects the provider for its own request. The supplying bank accepts before reservation. Officers can change the selected candidate while the request is `REQUESTED`, cancel while cancellation is permitted, or decline as the supplying bank. A recommendation becomes an operational order through those staff actions.
 
-### What happens if the recommendation is wrong or inference is offline
+### What happens if the AI is wrong or offline
 
 Staff can refresh a batch preview after stock or quarantine changes and review a revised whole-batch proposal. Staff can also choose another eligible returned candidate. Selection rechecks current inventory, and the supplying bank confirms again under a row lock. The deterministic feature has no external model service or inference credentials. Network or server outages require the facility's existing phone coordination process. A complete offline or SMS workflow remains future work.
 
@@ -230,6 +228,8 @@ Staff can refresh a batch preview after stock or quarantine changes and review a
 The official starter dataset is synthetic and models a blood network in Kenya. The version imported in this repository contains 47 facilities, 2,162 routes, 225 inventory rows, power-outage and drive logs, and a subset of 2,500 historical requests. Imported stock and temperature values are fixed demonstration inputs. Existing migrations preserve that input for reproduction. The [Applicant's Kit](https://drive.google.com/drive/folders/1e4gcSnUvbao73maOT3-THjgUBtMQJDa-) supplies the original dataset and its documentation.
 
 All demonstration records are synthetic. The project excludes real donor, patient and confidential facility records. Additional datasets require an identified source and permission for their use.
+
+**Dataset licence:** The technical phase brief permits use of the supplied synthetic data for the hackathon but does not name a separate dataset licence. The Applicant's Kit documentation is the source for any additional data-use terms.
 
 ## African conditions
 
