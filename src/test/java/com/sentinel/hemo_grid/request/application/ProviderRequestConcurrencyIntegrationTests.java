@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -14,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.sentinel.hemo_grid.auth.api.LoginRequest;
 import com.sentinel.hemo_grid.auth.application.AuthService;
+import com.sentinel.hemo_grid.common.exception.BusinessException;
 import com.sentinel.hemo_grid.inventory.api.InventoryResponse;
 import com.sentinel.hemo_grid.inventory.application.InventoryService;
 import com.sentinel.hemo_grid.inventory.domain.BloodComponent;
@@ -43,6 +45,7 @@ import org.springframework.test.context.jdbc.Sql;
 class ProviderRequestConcurrencyIntegrationTests {
 
 	private static final UUID MAITAMA_BANK_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
+	private static final UUID EMBU_BANK_ID = UUID.fromString("44444444-4444-4444-4444-444444444444");
 	private static final UUID O_NEGATIVE_MAITAMA_INVENTORY_ID = UUID.fromString("30000000-0000-0000-0000-000000000008");
 
 	@Autowired
@@ -171,6 +174,104 @@ class ProviderRequestConcurrencyIntegrationTests {
 				.orElseThrow();
 		assertThat(inventory.unitsReserved()).isEqualTo(3);
 		assertThat(inventory.unitsFree()).isEqualTo(2);
+	}
+
+	@Test
+	void concurrentCancellationAndAcceptanceNeverLeaveOrphanedReservation() throws Exception {
+		Jwt hospitalJwt = login("hospital.demo@hemogrid.local", "HospitalDemo123!");
+		Jwt bankJwt = login("bank.demo@hemogrid.local", "BankDemo123!");
+		BloodRequestResponse created = bloodRequestService.createRequest(hospitalJwt,
+				new CreateBloodRequestRequest(BloodGroup.O_NEGATIVE, BloodComponent.RED_CELLS, 3,
+						RequestUrgency.CRITICAL, "CANCEL-ACCEPT-RACE", null));
+		bloodRequestService.selectProvider(hospitalJwt, created.id(), new SelectProviderRequest(MAITAMA_BANK_ID));
+
+		CountDownLatch ready = new CountDownLatch(2);
+		CountDownLatch start = new CountDownLatch(1);
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		try {
+			Future<BloodRequestResponse> accept = executor.submit(
+					() -> acceptTogether(bankJwt, created.id(), ready, start));
+			Future<BloodRequestResponse> cancel = executor.submit(() -> {
+				ready.countDown();
+				assertThat(start.await(5, TimeUnit.SECONDS)).isTrue();
+				return bloodRequestService.cancelRequest(hospitalJwt, created.id());
+			});
+
+			assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
+			start.countDown();
+			assertThat(cancel.get(10, TimeUnit.SECONDS).status()).isEqualTo(RequestStatus.CANCELLED);
+			try {
+				assertThat(accept.get(10, TimeUnit.SECONDS).status()).isEqualTo(RequestStatus.ACCEPTED);
+			} catch (ExecutionException exception) {
+				// Cancellation won the request lock; accepting the stale request must fail.
+				assertThat(exception.getCause()).isInstanceOf(BusinessException.class);
+			}
+		} finally {
+			executor.shutdownNow();
+		}
+
+		assertThat(bloodRequestService.getRequest(hospitalJwt, created.id()).status())
+				.isEqualTo(RequestStatus.CANCELLED);
+		InventoryResponse inventory = inventoryService.listInventory(bankJwt).stream()
+				.filter(row -> row.id().equals(O_NEGATIVE_MAITAMA_INVENTORY_ID)).findFirst().orElseThrow();
+		assertThat(inventory.unitsReserved()).isZero();
+		assertThat(inventory.unitsFree()).isEqualTo(5);
+	}
+
+	@Test
+	void concurrentReselectionAndAcceptanceCannotReserveWrongProvider() throws Exception {
+		Jwt hospitalJwt = login("hospital.demo@hemogrid.local", "HospitalDemo123!");
+		Jwt bankJwt = login("bank.demo@hemogrid.local", "BankDemo123!");
+		BloodRequestResponse created = bloodRequestService.createRequest(hospitalJwt,
+				new CreateBloodRequestRequest(BloodGroup.O_NEGATIVE, BloodComponent.RED_CELLS, 3,
+						RequestUrgency.CRITICAL, "RESELECT-ACCEPT-RACE", null));
+		bloodRequestService.selectProvider(hospitalJwt, created.id(), new SelectProviderRequest(MAITAMA_BANK_ID));
+
+		CountDownLatch ready = new CountDownLatch(2);
+		CountDownLatch start = new CountDownLatch(1);
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		boolean acceptSucceeded = false;
+		boolean reselectSucceeded = false;
+		try {
+			Future<BloodRequestResponse> accept = executor.submit(
+					() -> acceptTogether(bankJwt, created.id(), ready, start));
+			Future<BloodRequestResponse> reselect = executor.submit(() -> {
+				ready.countDown();
+				assertThat(start.await(5, TimeUnit.SECONDS)).isTrue();
+				return bloodRequestService.selectProvider(hospitalJwt, created.id(), new SelectProviderRequest(EMBU_BANK_ID));
+			});
+
+			assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
+			start.countDown();
+			try {
+				assertThat(accept.get(10, TimeUnit.SECONDS).status()).isEqualTo(RequestStatus.ACCEPTED);
+				acceptSucceeded = true;
+			} catch (ExecutionException exception) {
+				assertThat(exception.getCause()).isInstanceOf(BusinessException.class);
+			}
+			try {
+				assertThat(reselect.get(10, TimeUnit.SECONDS).provider().id()).isEqualTo(EMBU_BANK_ID);
+				reselectSucceeded = true;
+			} catch (ExecutionException exception) {
+				assertThat(exception.getCause()).isInstanceOf(BusinessException.class);
+			}
+		} finally {
+			executor.shutdownNow();
+		}
+
+		assertThat(acceptSucceeded).isNotEqualTo(reselectSucceeded);
+		BloodRequestResponse current = bloodRequestService.getRequest(hospitalJwt, created.id());
+		InventoryResponse inventory = inventoryService.listInventory(bankJwt).stream()
+				.filter(row -> row.id().equals(O_NEGATIVE_MAITAMA_INVENTORY_ID)).findFirst().orElseThrow();
+		if (acceptSucceeded) {
+			assertThat(current.status()).isEqualTo(RequestStatus.ACCEPTED);
+			assertThat(current.provider().id()).isEqualTo(MAITAMA_BANK_ID);
+			assertThat(inventory.unitsReserved()).isEqualTo(3);
+		} else {
+			assertThat(current.status()).isEqualTo(RequestStatus.REQUESTED);
+			assertThat(current.provider().id()).isEqualTo(EMBU_BANK_ID);
+			assertThat(inventory.unitsReserved()).isZero();
+		}
 	}
 
 	private BloodRequestResponse acceptTogether(
