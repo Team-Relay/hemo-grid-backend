@@ -44,6 +44,18 @@ class ApiFlowIntegrationTests {
 		mockMvc.perform(get("/actuator/health"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("UP"));
+		// Render probes must stay available without a JWT, even during sign-in outages.
+		mockMvc.perform(get("/actuator/health/readiness"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("UP"));
+
+		mockMvc.perform(get("/actuator/health/liveness"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("UP"));
+
+		// Do not make other Actuator operations publicly accessible.
+		mockMvc.perform(get("/actuator/env"))
+				.andExpect(status().isUnauthorized());
 
 		mockMvc.perform(get("/api/v1/auth/me"))
 				.andExpect(status().isUnauthorized())
