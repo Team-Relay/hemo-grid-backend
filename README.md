@@ -230,7 +230,11 @@ The coordinator acknowledges staff approval of every request included in a batch
 
 ### What happens if the AI is wrong or offline
 
-Staff can refresh a batch preview after stock or quarantine changes and review a revised whole-batch proposal. Staff can also choose another eligible returned candidate. Selection rechecks current inventory, and the supplying bank confirms again under a row lock. The deterministic feature has no external model service or inference credentials. Network or server outages require the facility's existing phone coordination process. A complete offline or SMS workflow remains future work.
+**Joint planning fails or returns no complete plan:** This deterministic planner requires no external model inference service. If its preview endpoint returns an error, `INFEASIBLE` or `LIMIT_REACHED`, a coordinator must not treat the batch as an approved allocation. The frontend now explicitly offers a **Manual dispatch fallback**: the hospital officer signs into the existing single-request workflow, refreshes current candidates, and individually approves an eligible supplier. The blood bank independently accepts or declines, rechecks safety and reserves stock under a database lock. The coordinator cannot skip these role-specific decisions.
+
+**Reproducible injected failure:** `ManualDispatchFallbackIntegrationTests` uses a real Spring/PostgreSQL test database, forces the coordinator planning endpoint to return HTTP 503, then verifies hospital selection, bank acceptance, `PREPARING → IN_TRANSIT → DELIVERED`, inventory changes (5→2 available and 0→3→0 reserved) and recorded request timestamps. An unrelated pending request remains untouched. The test does **not** create a real patient or alter the deployed demo.
+
+**Connectivity or server failure:** The digital workflow cannot confirm live stock or reserve units. Facilities must independently verify stock and cold-chain conditions using established telephone/manual procedures and record communications separately. Automatic offline synchronization, SMS and a dedicated user-action audit ledger are not yet implemented. The present database records status-change timestamps and inventory balances, but not an independently verified per-actor communications log.
 
 ## Data
 
